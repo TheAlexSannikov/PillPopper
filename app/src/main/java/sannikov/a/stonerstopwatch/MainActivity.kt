@@ -1,10 +1,10 @@
 package sannikov.a.stonerstopwatch
 
-import android.graphics.BlendMode
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -18,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.hsl
+import androidx.compose.ui.graphics.ExperimentalGraphicsApi
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -33,21 +35,26 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 class MainActivity : ComponentActivity() {
+    @ExperimentalGraphicsApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             Surface(
                 color = Color(0xFF101010),
-                modifier = Modifier.fillMaxSize(),
+
+                modifier = Modifier.fillMaxSize()
+
             ) {
                 Box(
-                    contentAlignment = Alignment.Center,
+                    contentAlignment = Alignment.Center
                 ) {
                     Timer(
                         totalTime = 100L * 1000L,
                         handleColor = Color.Green,
-                        inactiveBarColor = Color.DarkGray,
-                        activeBarColor = Color(0xFF37B900),
+//                        dayColor = hsl(197F, 0.71F, 0.73F),
+//                        nightColor = hsl(236F, 0.61F, 0.20F),
+                        dayColor = hsl(197F, 0.71F, 0.73F),
+                        nightColor = Color(R.color.bg_gradient_bottom),
                         modifier = Modifier.size(200.dp),
                     )
                 }
@@ -60,8 +67,8 @@ class MainActivity : ComponentActivity() {
 fun Timer(
     totalTime: Long,
     handleColor: Color,
-    inactiveBarColor: Color,
-    activeBarColor: Color,
+    dayColor: Color,
+    nightColor: Color,
     modifier: Modifier = Modifier,
     initArcPercent: Float = 1f,
     strokeWidth: Dp = 5.dp,
@@ -69,7 +76,7 @@ fun Timer(
     var size by remember {
         mutableStateOf(IntSize.Zero)
     }
-    var arcPercent by remember {
+    var dayStartArcPercent by remember {
         mutableStateOf(initArcPercent)
     }
     var currentTime by remember {
@@ -83,11 +90,12 @@ fun Timer(
         if(currentTime > 0 && isTimerRunning) {
             delay(100L)
             currentTime -= 100L
-            arcPercent = currentTime / totalTime.toFloat()
+            dayStartArcPercent = currentTime / totalTime.toFloat()
         }
     }
 
     Box(
+
         contentAlignment = Alignment.Center,
         modifier = modifier
             .onSizeChanged {
@@ -96,21 +104,21 @@ fun Timer(
     ) {
         // draw the circular arc of the stopwatch
         Canvas(modifier = modifier) {
-            // draw the inactive arc
+            // draw the day arc
             drawArc(
-                color = inactiveBarColor,
-                startAngle = -215f,
-                sweepAngle = 250f,
+                color = dayColor,
+                startAngle = 0f,
+                sweepAngle = 180f,
                 useCenter = false, // else this makes a pie chart
                 topLeft = Offset(0f, 0f), // the default
                 size = Size(size.width.toFloat(), size.height.toFloat()),
                 style = Stroke(strokeWidth.toPx(), cap = StrokeCap.Round),
             )
-            // draw the active arc
+            // draw the night arc
             drawArc(
-                color = activeBarColor,
-                startAngle = -215f,
-                sweepAngle = 250f * arcPercent,
+                color = nightColor,
+                startAngle = 180f,
+                sweepAngle = 180f,
                 useCenter = false, // else this makes a pie chart
                 topLeft = Offset(0f, 0f), // the default
                 size = Size(size.width.toFloat(), size.height.toFloat()),
@@ -119,7 +127,7 @@ fun Timer(
             // draw the circle on end of active bar. A little complex
             val center = Offset(size.width / 2f, size.height / 2f)
             val angle =
-                (250f * arcPercent + 145f) * (PI / 180f).toFloat() // degree format of the circle
+                (250f * dayStartArcPercent + 145f) * (PI / 180f).toFloat() // degree format of the circle
             val r = size.width / 2f
             val xOff = cos(angle) * r
             val yOff = sin(angle) * r
