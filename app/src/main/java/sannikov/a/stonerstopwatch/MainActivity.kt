@@ -1,6 +1,7 @@
 package sannikov.a.stonerstopwatch
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
@@ -34,16 +35,18 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
+const val tag = "MainActivity"
 class MainActivity : ComponentActivity() {
+
     @ExperimentalGraphicsApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             Surface(
-                color = Color(0xFF101010),
+//                color = Color(0xFF101010),
+                color = Color(R.attr.colorPrimary),
 
                 modifier = Modifier.fillMaxSize()
-
             ) {
                 Box(
                     contentAlignment = Alignment.Center
@@ -53,10 +56,11 @@ class MainActivity : ComponentActivity() {
                         handleColor = Color.Green,
 //                        dayColor = hsl(197F, 0.71F, 0.73F),
 //                        nightColor = hsl(236F, 0.61F, 0.20F),
-                        dayColor = hsl(197F, 0.71F, 0.73F),
-                        nightColor = Color(R.color.bg_gradient_bottom),
+                        dayColor = Color(R.attr.colorPrimary),
+                        nightColor = Color(R.attr.colorSecondary),
                         modifier = Modifier.size(200.dp),
                     )
+                    Log.d(tag, "colorPrimary"  + R.attr.colorPrimary + ", colorSecondary: " + R.attr.colorSecondary)
                 }
             }
         }
@@ -104,25 +108,21 @@ fun Timer(
     ) {
         // draw the circular arc of the stopwatch
         Canvas(modifier = modifier) {
-            // draw the day arc
             drawArc(
                 color = dayColor,
-                startAngle = 0f,
-                sweepAngle = 180f,
-                useCenter = false, // else this makes a pie chart
-                topLeft = Offset(0f, 0f), // the default
+                startAngle = -215f,
+                sweepAngle = 250f,
+                useCenter = false,
                 size = Size(size.width.toFloat(), size.height.toFloat()),
-                style = Stroke(strokeWidth.toPx(), cap = StrokeCap.Round),
+                style = Stroke(strokeWidth.toPx(), cap = StrokeCap.Round)
             )
-            // draw the night arc
             drawArc(
                 color = nightColor,
-                startAngle = 180f,
-                sweepAngle = 180f,
-                useCenter = false, // else this makes a pie chart
-                topLeft = Offset(0f, 0f), // the default
+                startAngle = -215f,
+                sweepAngle = 250f * dayStartArcPercent,
+                useCenter = false,
                 size = Size(size.width.toFloat(), size.height.toFloat()),
-                style = Stroke(strokeWidth.toPx(), cap = StrokeCap.Round),
+                style = Stroke(strokeWidth.toPx(), cap = StrokeCap.Round)
             )
             // draw the circle on end of active bar. A little complex
             val center = Offset(size.width / 2f, size.height / 2f)
