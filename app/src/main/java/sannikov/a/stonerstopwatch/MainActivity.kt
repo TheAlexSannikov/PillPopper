@@ -36,9 +36,9 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-const val tag = "MainActivity"
-class MainActivity : ComponentActivity() {
 
+class MainActivity : ComponentActivity() {
+    private val tag = "MainActivity"
     @ExperimentalGraphicsApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

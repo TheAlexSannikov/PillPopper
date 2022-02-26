@@ -18,7 +18,7 @@ class StateViewModel : ViewModel() {
     }
 
     // todo: remove below variables
-    private val _currentTime : MutableLiveData<Long> = MutableLiveData(100)
+    private val _currentTime : MutableLiveData<Long> = MutableLiveData(10000L)
     val currentTime: LiveData<Long> = _currentTime
 
     fun onCurrentTimeChange(newCurrentTime: Long){

@@ -31,12 +31,14 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-const val startTimeMs = 100000L
-const val delayAmountMs = 100L
-const val Tag = "StopwatchScreen"
+val startTimeMs = 100000L
+val delayAmountMs = 100L
+val tag = "StopwatchScreen"
 
 @Composable
 fun StopwatchScreen(stateViewModel: StateViewModel = viewModel()) {
+
+
     val currentTime: Long by stateViewModel.currentTime.observeAsState(initial =  startTimeMs)
 
     Surface(
@@ -50,7 +52,6 @@ fun StopwatchScreen(stateViewModel: StateViewModel = viewModel()) {
             StopwatchContent(
                 stateViewModel = stateViewModel,
                 currentTime = currentTime,
-                onCurrentTimeChange = {stateViewModel.onCurrentTimeChange(it)},
                 handleColor = Color.Red,
                 dayColor = Color(R.attr.colorPrimary),
                 nightColor = Color(R.attr.colorSecondary),
@@ -64,7 +65,7 @@ fun StopwatchScreen(stateViewModel: StateViewModel = viewModel()) {
 fun StopwatchContent(
     stateViewModel: StateViewModel,
     currentTime: Long,
-    onCurrentTimeChange: (Long) -> Unit,
+    totalTime: Long = 10000L,
     handleColor: Color,
     dayColor: Color,
     nightColor: Color,
@@ -88,8 +89,8 @@ fun StopwatchContent(
             delay(delayAmountMs)
             Log.d(tag, "currentTime: " + currentTime)
 //            currentTime -= 100L
-            stateViewModel.onCurrentTimeChange(currentTime - 0)
-            dayStartArcPercent = currentTime / currentTime.toFloat()
+            stateViewModel.onCurrentTimeChange(currentTime - delayAmountMs)
+            dayStartArcPercent = currentTime / totalTime.toFloat()
         }
     }
 
@@ -137,7 +138,7 @@ fun StopwatchContent(
         // TODO: Make the clock update...
         // the time on clock
         Text(
-            text = (currentTime / 1000L).toString(),
+            text = (currentTime/1000).toString(),
             fontSize = 44.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
@@ -160,5 +161,4 @@ fun StopwatchContent(
             )
         }
     }
-
 }
