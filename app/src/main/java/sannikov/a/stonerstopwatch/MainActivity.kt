@@ -42,6 +42,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            Navigation()
+        }
+
+    }
+}
+
+/*
+setContent {
             Surface(
 //                color = Color(0xFF101010),
                 color = Color(R.attr.colorPrimary),
@@ -64,9 +72,9 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-}
+ */
 
+/*
 @Composable
 fun Timer(
     totalTime: Long,
@@ -167,3 +175,4 @@ fun Timer(
     }
 
 }
+*/
