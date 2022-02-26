@@ -26,7 +26,7 @@ fun MainScreenBottomNav() {
 @Composable
 fun BottomBar(navController: NavHostController) {
     val screens = listOf(
-        BottomBarScreen.Home,
+        BottomBarScreen.Stopwatch,
         BottomBarScreen.Profile,
         BottomBarScreen.Settings,
     )
