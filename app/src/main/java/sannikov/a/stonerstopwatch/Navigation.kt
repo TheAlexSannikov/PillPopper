@@ -82,7 +82,24 @@ fun SettingsScreen(name: String?) {
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxSize(),
     ) {
-        Text(text = "Hello, $name")
+        Text(text = "Settings, $name?")
     }
-
+}
+@Composable
+fun ProfileScreen(name: String?) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        Text(text = "Profile, $name?")
+    }
+}
+@Composable
+fun HomeScreen(name: String?) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        Text(text = "Home, $name?")
+    }
 }

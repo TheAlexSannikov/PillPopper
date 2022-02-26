@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import sannikov.a.stonerstopwatch.ui.theme.StonerStopwatchTheme
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -42,7 +43,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Navigation()
+            StonerStopwatchTheme() {
+                MainScreenBottomNav()
+
+            }
+//            Navigation()
         }
 
     }
