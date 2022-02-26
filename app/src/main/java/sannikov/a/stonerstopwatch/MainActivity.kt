@@ -1,5 +1,7 @@
 package sannikov.a.stonerstopwatch
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -39,44 +41,21 @@ import kotlin.math.sin
 
 class MainActivity : ComponentActivity() {
     private val tag = "MainActivity"
+    val stateViewModel = StateViewModel() // to interact with mutableLiveData
+    lateinit var sharedPreferences: SharedPreferences
+
     @ExperimentalGraphicsApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        sharedPreferences= this?.getSharedPreferences(
+            getString(R.string.preference_file_key), Context.MODE_PRIVATE)
         setContent {
             StonerStopwatchTheme() {
-                MainScreenBottomNav()
-
+                MainScreenBottomNav(stateViewModel =  stateViewModel, sharedPreferences = sharedPreferences, context = applicationContext)
             }
-//            Navigation()
         }
-
     }
 }
 
-/*
-setContent {
-            Surface(
-//                color = Color(0xFF101010),
-                color = Color(R.attr.colorPrimary),
-
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center
-                ) {
-                    Timer(
-                        totalTime = 100L * 1000L,
-                        handleColor = Color.Green,
-//                        dayColor = hsl(197F, 0.71F, 0.73F),
-//                        nightColor = hsl(236F, 0.61F, 0.20F),
-                        dayColor = Color(R.attr.colorPrimary),
-                        nightColor = Color(R.attr.colorSecondary),
-                        modifier = Modifier.size(200.dp),
-                    )
-                    Log.d(tag, "colorPrimary"  + R.attr.colorPrimary + ", colorSecondary: " + R.attr.colorSecondary)
-                }
-            }
-        }
- */
 
 

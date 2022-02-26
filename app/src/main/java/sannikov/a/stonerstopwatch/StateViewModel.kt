@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 class StateViewModel : ViewModel() {
-    private val _startTimestamp : MutableLiveData<Long> = MutableLiveData(0)
+    private val _startTimestamp : MutableLiveData<Long> = MutableLiveData(startTimeMs)
     private val _isRunning : MutableLiveData<Boolean> = MutableLiveData(false)
     val startTimestamp: LiveData<Long> = _startTimestamp
     val isRunning: LiveData<Boolean> = _isRunning
@@ -18,7 +18,7 @@ class StateViewModel : ViewModel() {
     }
 
     // todo: remove below variables
-    private val _currentTime : MutableLiveData<Long> = MutableLiveData(10000L)
+    private val _currentTime : MutableLiveData<Long> = MutableLiveData()
     val currentTime: LiveData<Long> = _currentTime
 
     fun onCurrentTimeChange(newCurrentTime: Long){

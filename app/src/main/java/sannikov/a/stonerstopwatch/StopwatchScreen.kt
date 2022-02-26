@@ -1,5 +1,8 @@
 package sannikov.a.stonerstopwatch
 
+import android.content.Context
+import android.content.SharedPreferences
+import android.content.res.Resources
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -35,43 +38,44 @@ val startTimeMs = 100000L
 val delayAmountMs = 100L
 val tag = "StopwatchScreen"
 
+// TODO: refactor to include 'context' so dont need to use 'Resources.getSystem()'
 @Composable
-fun StopwatchScreen(stateViewModel: StateViewModel = viewModel()) {
+fun StopwatchScreen(stateViewModel: StateViewModel, sharedPreferences: SharedPreferences, context: Context) {
 
 
-    val currentTime: Long by stateViewModel.currentTime.observeAsState(initial =  startTimeMs)
+    val currentTime: Long by stateViewModel.currentTime.observeAsState(initial = startTimeMs)
+    val startTimestamp: Long by stateViewModel.startTimestamp.observeAsState(initial = 0)
+    val isRunning = sharedPreferences.getBoolean(context.getString(R.string.saved_is_running_key), false)
 
-    Surface(
-        color = Color(R.attr.colorPrimary),
 
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Box(
-            contentAlignment = Alignment.Center
-        ) {
-            StopwatchContent(
-                stateViewModel = stateViewModel,
-                currentTime = currentTime,
-                handleColor = Color.Red,
-                dayColor = Color(R.attr.colorPrimary),
-                nightColor = Color(R.attr.colorSecondary),
-                modifier = Modifier.size(200.dp),
-            )
-        }
-    }
+    StopwatchContent(
+        stateViewModel = stateViewModel,
+        currentTime = currentTime,
+        isRunning = isRunning,
+        handleColor = Color.Red,
+        dayColor = Color(R.attr.colorPrimary),
+        nightColor = Color(R.attr.colorSecondary),
+        modifier = Modifier.size(200.dp),
+        sharedPreferences = sharedPreferences,
+        context = context,
+    )
+
 }
 
 @Composable
 fun StopwatchContent(
     stateViewModel: StateViewModel,
+    sharedPreferences: SharedPreferences,
     currentTime: Long,
-    totalTime: Long = 10000L,
+    isRunning: Boolean,
+    totalTime: Long = startTimeMs,
     handleColor: Color,
     dayColor: Color,
     nightColor: Color,
     modifier: Modifier = Modifier,
     initArcPercent: Float = 1f,
     strokeWidth: Dp = 5.dp,
+    context : Context,
 ) {
     var size by remember {
         mutableStateOf(IntSize.Zero)
@@ -80,85 +84,113 @@ fun StopwatchContent(
         mutableStateOf(initArcPercent)
     }
 
-    var isTimerRunning by remember {
-        mutableStateOf(false)
-    }
+//    var isRunning by remember {
+//        mutableStateOf(false)
+//    }
     // run code whenever a key changes
-    LaunchedEffect(key1 = currentTime, key2 = isTimerRunning) {
-        if(currentTime > 0 && isTimerRunning) {
+    LaunchedEffect(key1 = currentTime, key2 = isRunning) {
+        if (currentTime > 0 && isRunning) {
             delay(delayAmountMs)
-            Log.d(tag, "currentTime: " + currentTime)
-//            currentTime -= 100L
             stateViewModel.onCurrentTimeChange(currentTime - delayAmountMs)
             dayStartArcPercent = currentTime / totalTime.toFloat()
         }
     }
-
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier
-            .onSizeChanged {
-                size = it
-            }
+    Surface(
+        color = Color(R.attr.colorPrimary),
+        modifier = Modifier.fillMaxSize()
     ) {
-        // draw the circular arc of the stopwatch
-        Canvas(modifier = modifier) {
-            drawArc(
-                color = dayColor,
-                startAngle = -215f,
-                sweepAngle = 250f,
-                useCenter = false,
-                size = Size(size.width.toFloat(), size.height.toFloat()),
-                style = Stroke(strokeWidth.toPx(), cap = StrokeCap.Round)
-            )
-            drawArc(
-                color = nightColor,
-                startAngle = -215f,
-                sweepAngle = 250f * dayStartArcPercent,
-                useCenter = false,
-                size = Size(size.width.toFloat(), size.height.toFloat()),
-                style = Stroke(strokeWidth.toPx(), cap = StrokeCap.Round)
-            )
-            // draw the circle on end of active bar. A little complex
-            val center = Offset(size.width / 2f, size.height / 2f)
-            val angle =
-                (250f * dayStartArcPercent + 145f) * (PI / 180f).toFloat() // degree format of the circle
-            val r = size.width / 2f
-            val xOff = cos(angle) * r
-            val yOff = sin(angle) * r
+        Box(
+            contentAlignment = Alignment.Center
+        ) {
 
-            drawPoints(
-                listOf(Offset(center.x + xOff, center.y + yOff)),
-                pointMode = PointMode.Points,
-                color = handleColor,
-                strokeWidth = (strokeWidth * 3f).toPx(),
-                cap = StrokeCap.Round,
-            )
-        }
-        // TODO: Make the clock update...
-        // the time on clock
-        Text(
-            text = (currentTime/1000).toString(),
-            fontSize = 44.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-        )
-        Button(
-            onClick = { isTimerRunning = !isTimerRunning},
-            modifier = Modifier.align(Alignment.BottomCenter),
-            // can have different colors depending on app state
-            colors = ButtonDefaults.buttonColors(
-                backgroundColor = if (!isTimerRunning || currentTime <= 0L) {
-                    Color.Green
-                } else {
-                    Color.Red
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = modifier
+                    .onSizeChanged {
+                        size = it
+                    }
+            ) {
+                // draw the circular arc of the stopwatch
+                Canvas(modifier = modifier) {
+                    drawArc(
+                        color = dayColor,
+                        startAngle = -215f,
+                        sweepAngle = 250f,
+                        useCenter = false,
+                        size = Size(size.width.toFloat(), size.height.toFloat()),
+                        style = Stroke(strokeWidth.toPx(), cap = StrokeCap.Round)
+                    )
+                    drawArc(
+                        color = nightColor,
+                        startAngle = -215f,
+                        sweepAngle = 250f * dayStartArcPercent,
+                        useCenter = false,
+                        size = Size(size.width.toFloat(), size.height.toFloat()),
+                        style = Stroke(strokeWidth.toPx(), cap = StrokeCap.Round)
+                    )
+                    // draw the circle on end of active bar. A little complex
+                    val center = Offset(size.width / 2f, size.height / 2f)
+                    val angle =
+                        (250f * dayStartArcPercent + 145f) * (PI / 180f).toFloat() // degree format of the circle
+                    val r = size.width / 2f
+                    val xOff = cos(angle) * r
+                    val yOff = sin(angle) * r
+
+                    drawPoints(
+                        listOf(Offset(center.x + xOff, center.y + yOff)),
+                        pointMode = PointMode.Points,
+                        color = handleColor,
+                        strokeWidth = (strokeWidth * 3f).toPx(),
+                        cap = StrokeCap.Round,
+                    )
                 }
-            )
-        ){
-            Text(text = if(isTimerRunning && currentTime >= 0L) "Stop"
-            else if (!isTimerRunning && currentTime >= 0L) "Start"
-            else "Restart"
-            )
+                // TODO: Make the clock update...
+                // the time on clock
+                Text(
+                    text = (currentTime / 1000).toString(),
+                    fontSize = 44.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                )
+                Button(
+                    onClick = {
+                        buttonOnClick(
+                            newIsRunning = !isRunning,
+                            stateViewModel = stateViewModel,
+                            sharedPreferences = sharedPreferences,
+                            context = context,
+                        )
+                    },
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    // can have different colors depending on app state
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = if (!isRunning || currentTime <= 0L) {
+                            Color.Green
+                        } else {
+                            Color.Red
+                        }
+                    )
+                ) {
+                    Text(
+                        text = if (isRunning && currentTime >= 0L) "Stop"
+                        else if (!isRunning && currentTime >= 0L) "Start"
+                        else "Restart"
+                    )
+                }
+            }
         }
+    }
+}
+
+fun buttonOnClick(
+    newIsRunning: Boolean,
+    stateViewModel: StateViewModel,
+    sharedPreferences: SharedPreferences,
+    context: Context
+) {
+    stateViewModel.onIsRunningChange(newIsRunning = newIsRunning)
+    with(sharedPreferences.edit()) {
+        putBoolean(context.getString(R.string.saved_is_running_key), newIsRunning)
+        apply()
     }
 }

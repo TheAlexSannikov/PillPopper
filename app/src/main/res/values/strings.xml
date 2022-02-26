@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">StonerStopwatch</string>
+    <string name="preference_file_key">sannikov.a.stonerstopwatch.preferences</string>
+    <string name="saved_is_running_key">is_running</string>
 </resources>
