@@ -15,7 +15,6 @@ import androidx.navigation.compose.rememberNavController
 @Composable
 fun MainScreenBottomNav(
     stateViewModel: StateViewModel,
-    context: Context,
     dataStoreManager: DataStoreManager
 ) {
     val navController = rememberNavController()
@@ -26,7 +25,6 @@ fun MainScreenBottomNav(
             navController = navController,
             stateViewModel = stateViewModel,
             dataStoreManager = dataStoreManager,
-            context = context
         )
     }
 }

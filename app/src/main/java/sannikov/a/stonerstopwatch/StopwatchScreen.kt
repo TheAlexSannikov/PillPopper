@@ -1,9 +1,5 @@
 package sannikov.a.stonerstopwatch
 
-import android.content.Context
-import android.content.SharedPreferences
-import android.content.res.Resources
-import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,12 +24,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.cos
@@ -44,29 +37,26 @@ val delayAmountMs = 100L
 val tag = "StopwatchScreen"
 
 
-// TODO: refactor to include 'context' so dont need to use 'Resources.getSystem()'
 @Composable
 fun StopwatchScreen(
     stateViewModel: StateViewModel,
-    context: Context,
     dataStoreManager: DataStoreManager
 ) {
 
 
     val currentTime: Long by stateViewModel.currentTime.observeAsState(initial = startTimeMs)
     val startTimestamp: Long by stateViewModel.startTimestamp.observeAsState(initial = 0)
-    val isRunning: Boolean by stateViewModel.isRunning.observeAsState(initial = false)
+    val stopwatchState: StopwatchStates by stateViewModel.stopwatchState.observeAsState(initial = StopwatchStates.RUNNING)
 
     StopwatchContent(
         stateViewModel = stateViewModel,
         currentTime = currentTime,
-        isRunning = isRunning,
+        stopwatchState = stopwatchState,
         handleColor = Color.Red,
         dayColor = Color(R.attr.colorPrimary),
         nightColor = Color(R.attr.colorSecondary),
         modifier = Modifier.size(200.dp),
         dataStoreManager = dataStoreManager,
-        context = context,
     )
 
 }
@@ -76,7 +66,7 @@ fun StopwatchContent(
     stateViewModel: StateViewModel,
     dataStoreManager: DataStoreManager,
     currentTime: Long,
-    isRunning: Boolean,
+    stopwatchState: StopwatchStates,
     totalTime: Long = startTimeMs,
     handleColor: Color,
     dayColor: Color,
@@ -84,7 +74,6 @@ fun StopwatchContent(
     modifier: Modifier = Modifier,
     initArcPercent: Float = 1f,
     strokeWidth: Dp = 5.dp,
-    context : Context,
 ) {
     var size by remember {
         mutableStateOf(IntSize.Zero)
@@ -94,8 +83,8 @@ fun StopwatchContent(
     }
 
     // run code whenever a key changes
-    LaunchedEffect(key1 = currentTime, key2 = isRunning) {
-        if (currentTime > 0 && isRunning) {
+    LaunchedEffect(key1 = currentTime, key2 = stopwatchState) {
+        if (currentTime > 0 && stopwatchState == StopwatchStates.RUNNING) {
             delay(delayAmountMs)
             stateViewModel.onCurrentTimeChange(currentTime - delayAmountMs)
             dayStartArcPercent = currentTime / totalTime.toFloat()
@@ -161,26 +150,27 @@ fun StopwatchContent(
                 Button(
                     onClick = {
                         buttonOnClick(
-                            newIsRunning = !isRunning,
+                            currState = stopwatchState,
                             stateViewModel = stateViewModel,
                             dataStoreManager = dataStoreManager,
-                            context = context,
                         )
                     },
                     modifier = Modifier.align(Alignment.BottomCenter),
                     // can have different colors depending on app state
                     colors = ButtonDefaults.buttonColors(
-                        backgroundColor = if (!isRunning || currentTime <= 0L) {
-                            Color.Green
-                        } else {
-                            Color.Red
-                        }
+                        backgroundColor = Color.Green// if (!isRunning || currentTime <= 0L) {
+//                            Color.Green
+//                        } else {
+//                            Color.Red
+//                        }
                     )
                 ) {
                     Text(
-                        text = if (isRunning && currentTime >= 0L) "Stop"
-                        else if (!isRunning && currentTime >= 0L) "Start"
-                        else "Restart"
+                        // TODO: include in StopwatchStates sealed class
+                        text = if (stopwatchState == StopwatchStates.RUNNING && currentTime >= 0L) "Stop"
+                        else "Start"
+//                        else if (!isRunning && currentTime >= 0L) "Start"
+//                        else "Restart"
                     )
                 }
             }
@@ -189,16 +179,18 @@ fun StopwatchContent(
 }
 
 fun buttonOnClick(
-    newIsRunning: Boolean,
+    currState: StopwatchStates,
     stateViewModel: StateViewModel,
     dataStoreManager: DataStoreManager,
-    context: Context
 ) {
-    stateViewModel.onIsRunningChange(newIsRunning = newIsRunning)
+    val newState = if(currState == StopwatchStates.RUNNING) { StopwatchStates.PAUSED} else {StopwatchStates.RUNNING}
+    stateViewModel.onStopwatchStateChange(newState = newState)
 
     GlobalScope.launch(Dispatchers.IO) {
-        dataStoreManager.savetoDataStore(
-           isRunning = newIsRunning
+        // TODO: convert isRunning to an enumerated state
+        dataStoreManager.save(
+            keyName = "stopwatchState",
+            newValue =  newState.ordinal
         )
     }
 }

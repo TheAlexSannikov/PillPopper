@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             StonerStopwatchTheme() {
-                MainScreenBottomNav(stateViewModel =  stateViewModel, dataStoreManager = dataStoreManager, context = applicationContext)
+                MainScreenBottomNav(stateViewModel =  stateViewModel, dataStoreManager = dataStoreManager)
             }
         }
     }
