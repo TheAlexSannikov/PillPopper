@@ -2,13 +2,10 @@ package sannikov.a.stonerstopwatch
 // https://youtu.be/gg-KBGH9T8s
 
 import android.content.Context
-import android.content.SharedPreferences
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.constraintlayout.motion.widget.DesignTool
-import androidx.navigation.NavDeepLink
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
@@ -18,8 +15,8 @@ import androidx.navigation.compose.rememberNavController
 @Composable
 fun MainScreenBottomNav(
     stateViewModel: StateViewModel,
-    sharedPreferences: SharedPreferences,
-    context: Context
+    context: Context,
+    dataStoreManager: DataStoreManager
 ) {
     val navController = rememberNavController()
     Scaffold(
@@ -28,7 +25,7 @@ fun MainScreenBottomNav(
         BottomNavGraph(
             navController = navController,
             stateViewModel = stateViewModel,
-            sharedPreferences = sharedPreferences,
+            dataStoreManager = dataStoreManager,
             context = context
         )
     }

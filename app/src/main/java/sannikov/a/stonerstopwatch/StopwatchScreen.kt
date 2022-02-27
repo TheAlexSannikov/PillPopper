@@ -28,8 +28,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -38,15 +43,19 @@ val startTimeMs = 100000L
 val delayAmountMs = 100L
 val tag = "StopwatchScreen"
 
+
 // TODO: refactor to include 'context' so dont need to use 'Resources.getSystem()'
 @Composable
-fun StopwatchScreen(stateViewModel: StateViewModel, sharedPreferences: SharedPreferences, context: Context) {
+fun StopwatchScreen(
+    stateViewModel: StateViewModel,
+    context: Context,
+    dataStoreManager: DataStoreManager
+) {
 
 
     val currentTime: Long by stateViewModel.currentTime.observeAsState(initial = startTimeMs)
     val startTimestamp: Long by stateViewModel.startTimestamp.observeAsState(initial = 0)
-    val isRunning = sharedPreferences.getBoolean(context.getString(R.string.saved_is_running_key), false)
-
+    val isRunning: Boolean by stateViewModel.isRunning.observeAsState(initial = false)
 
     StopwatchContent(
         stateViewModel = stateViewModel,
@@ -56,7 +65,7 @@ fun StopwatchScreen(stateViewModel: StateViewModel, sharedPreferences: SharedPre
         dayColor = Color(R.attr.colorPrimary),
         nightColor = Color(R.attr.colorSecondary),
         modifier = Modifier.size(200.dp),
-        sharedPreferences = sharedPreferences,
+        dataStoreManager = dataStoreManager,
         context = context,
     )
 
@@ -65,7 +74,7 @@ fun StopwatchScreen(stateViewModel: StateViewModel, sharedPreferences: SharedPre
 @Composable
 fun StopwatchContent(
     stateViewModel: StateViewModel,
-    sharedPreferences: SharedPreferences,
+    dataStoreManager: DataStoreManager,
     currentTime: Long,
     isRunning: Boolean,
     totalTime: Long = startTimeMs,
@@ -84,9 +93,6 @@ fun StopwatchContent(
         mutableStateOf(initArcPercent)
     }
 
-//    var isRunning by remember {
-//        mutableStateOf(false)
-//    }
     // run code whenever a key changes
     LaunchedEffect(key1 = currentTime, key2 = isRunning) {
         if (currentTime > 0 && isRunning) {
@@ -157,7 +163,7 @@ fun StopwatchContent(
                         buttonOnClick(
                             newIsRunning = !isRunning,
                             stateViewModel = stateViewModel,
-                            sharedPreferences = sharedPreferences,
+                            dataStoreManager = dataStoreManager,
                             context = context,
                         )
                     },
@@ -185,12 +191,14 @@ fun StopwatchContent(
 fun buttonOnClick(
     newIsRunning: Boolean,
     stateViewModel: StateViewModel,
-    sharedPreferences: SharedPreferences,
+    dataStoreManager: DataStoreManager,
     context: Context
 ) {
     stateViewModel.onIsRunningChange(newIsRunning = newIsRunning)
-    with(sharedPreferences.edit()) {
-        putBoolean(context.getString(R.string.saved_is_running_key), newIsRunning)
-        apply()
+
+    GlobalScope.launch(Dispatchers.IO) {
+        dataStoreManager.savetoDataStore(
+           isRunning = newIsRunning
+        )
     }
 }
