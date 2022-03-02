@@ -85,9 +85,9 @@ class DataStoreManager(val context: Context) {
         Log.d(tag, "saveState:")
 
         GlobalScope.launch(Dispatchers.IO) {
-            stateViewModel.stopwatchState.getValue()?.let { save("stopwatchState", it.ordinal) }
-            stateViewModel.pauseTimestampMs.getValue()?.let { save("pauseTimestampMs", it) }
-            stateViewModel.startTimestampMs.getValue()?.let { save("startTimestampMs", it) }
+            save("stopwatchState", stateViewModel.stopwatchState.value.ordinal)
+            save("pauseTimestampMs", stateViewModel.pauseTimestampMs.value)
+            save("startTimestampMs", stateViewModel.startTimestampMs.value)
         }
     }
 }

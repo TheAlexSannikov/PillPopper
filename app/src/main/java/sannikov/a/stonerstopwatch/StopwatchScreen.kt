@@ -9,7 +9,6 @@ import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -40,10 +39,13 @@ fun StopwatchScreen(
 ) {
 
 
-    val startTimestampMs: Long by stateViewModel.startTimestampMs.observeAsState(initial = 0)
-    val stopwatchState: StopwatchStates by stateViewModel.stopwatchState.observeAsState(initial = StopwatchStates.RUNNING)
-    val pauseTimestampMs by stateViewModel.pauseTimestampMs.observeAsState(initial = 0)
-
+//    val startTimestampMs: Long by stateViewModel.startTimestampMs.observeAsState(initial = 0)
+//    val stopwatchState: StopwatchStates by stateViewModel.stopwatchState.observeAsState(initial = StopwatchStates.RUNNING)
+//    val pauseTimestampMs by stateViewModel.pauseTimestampMs.observeAsState(initial = 0)
+    val startTimestampMs by stateViewModel.startTimestampMs.collectAsState()
+    val stopwatchState by stateViewModel.stopwatchState.collectAsState()
+    val pauseTimestampMs by stateViewModel.pauseTimestampMs.collectAsState()
+    val clock by stateViewModel.clock.collectAsState()
 
 
     StopwatchContent(
@@ -51,6 +53,7 @@ fun StopwatchScreen(
         startTimestampMs = startTimestampMs,
         pauseTimestampMs = pauseTimestampMs,
         stopwatchState = stopwatchState,
+        clock = clock,
         handleColor = Color.Red,
         dayColor = Color(R.attr.colorPrimary),
         nightColor = Color(R.attr.colorSecondary),
@@ -63,6 +66,7 @@ fun StopwatchContent(
     stateViewModel: StateViewModel,
     pauseTimestampMs: Long,
     startTimestampMs: Long,
+    clock: Boolean,
     stopwatchState: StopwatchStates,
     handleColor: Color,
     dayColor: Color,
@@ -80,10 +84,8 @@ fun StopwatchContent(
     }
 
     // run code whenever a key changes
-    LaunchedEffect(key1 = currentTime, key2 = stopwatchState) {
+    LaunchedEffect(key1 = clock, key2 = stopwatchState) {
         if (currentTime > 0 && stopwatchState == StopwatchStates.RUNNING) {
-            delay(delayAmountMs)
-            stateViewModel.onStartTimestampMsChange(currentTime - delayAmountMs)
             dayStartArcPercent = currentTime / denominatorTime.toFloat()
         }
     }
