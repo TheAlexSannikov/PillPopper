@@ -2,9 +2,7 @@ package sannikov.a.stonerstopwatch
 
 import android.util.Log
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Surface
@@ -20,11 +18,11 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -56,6 +54,28 @@ fun StopwatchScreen(
     )
 }
 
+@Preview
+@Composable
+fun StopwatchScreenStub() {
+
+    val stateViewModel = StateViewModel()
+    val startTimestampMs by stateViewModel.startTimestampMs.collectAsState()
+    val stopwatchState by stateViewModel.stopwatchState.collectAsState()
+    val pauseTimestampMs by stateViewModel.pauseTimestampMs.collectAsState()
+    val displayTime by stateViewModel.displayTime.collectAsState()
+
+
+    StopwatchContent(
+        stateViewModel = stateViewModel,
+        stopwatchState = stopwatchState,
+        displayTime = displayTime,
+        handleColor = Color.Red,
+        dayColor = Color(R.attr.colorPrimary),
+        nightColor = Color(R.attr.colorSecondary),
+        modifier = Modifier.size(200.dp),
+    )
+}
+
 @Composable
 fun StopwatchContent(
     stateViewModel: StateViewModel,
@@ -69,10 +89,12 @@ fun StopwatchContent(
     strokeWidth: Dp = 5.dp,
 ) {
     Log.d(tag, "\tdisplayTime: $displayTime")
-    val currentTime = stateViewModel.clock.value - stateViewModel.startTimestampMs.value // TODO: Better arc logic
-    var size by remember {
-        mutableStateOf(IntSize.Zero)
+    val currentTime =
+        stateViewModel.clock.value - stateViewModel.startTimestampMs.value // TODO: Better arc logic
+    var size by remember { // TODO: Remove?
+        mutableStateOf(IntSize(width = 1000, height = 1000))
     }
+
     var dayStartArcPercent by remember {
         mutableStateOf(initArcPercent)
     }
@@ -88,15 +110,17 @@ fun StopwatchContent(
         modifier = Modifier.fillMaxSize()
     ) {
         Box(
-            contentAlignment = Alignment.Center
+
         ) {
 
             Box(
-                contentAlignment = Alignment.Center,
+
                 modifier = modifier
-                    .onSizeChanged {
-                        size = it
-                    }
+                    .width(80.dp)
+                    .height(80.dp)
+//                    .onSizeChanged {
+//                        size = it
+//                    }
             ) {
                 // draw the circular arc of the stopwatch
                 Canvas(modifier = modifier) {
@@ -132,67 +156,123 @@ fun StopwatchContent(
                         cap = StrokeCap.Round,
                     )
                 }
-                // TODO: Make the clock update...
-                // the time on clock
-                Text(
-                    text = displayTime,
-                    fontSize = 44.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                )
-                Button(
-                    onClick = {
-                        buttonOnClick(
-                            currState = stopwatchState,
-                            stateViewModel = stateViewModel,
-                        )
-                    },
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                    // can have different colors depending on app state
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color.Green// if (!isRunning || currentTime <= 0L) {
-//                            Color.Green
-//                        } else {
-//                            Color.Red
-//                        }
-                    )
+                Column(
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .padding(vertical = 60.dp)
+                        .height(100.dp)
                 ) {
+                    // the time on clock
                     Text(
-                        // TODO: include in StopwatchStates sealed class
-                        text = if (stopwatchState == StopwatchStates.RUNNING && currentTime >= 0L) "Stop"
-                        else "Start"
-//                        else if (!isRunning && currentTime >= 0L) "Start"
-//                        else "Restart"
+                        text = displayTime,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
                     )
+                    // encapsulate the buttons
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
+                        // start/stop button
+                        Button(
+                            onClick = {
+                                buttonOnClick(
+                                    stateViewModel = stateViewModel,
+                                    buttonName = "start",
+                                )
+                            },
+                            // can have different colors depending on app state
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = if (stateViewModel.stopwatchState.value == StopwatchStates.RUNNING) {
+                                    Color.Green
+                                } else {
+                                    Color.Red
+                                }
+                            )
+                        ) {
+                            Text(
+                                // TODO: include in StopwatchStates sealed class
+                                text = if (stopwatchState == StopwatchStates.RUNNING) "Stop"
+                                else "Start"
+                            )
+                        }
+
+                        // reset button
+                        Button(
+                            onClick = {
+                                buttonOnClick(
+                                    stateViewModel = stateViewModel,
+                                    buttonName = "reset"
+                                )
+                            },
+                            // can have different colors depending on app state
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = if (stateViewModel.stopwatchState.value == StopwatchStates.RUNNING) {
+                                    Color.Green
+                                } else {
+                                    Color.Red
+                                }
+                            )
+                        ) {
+                            Text(
+                                text = "Reset"
+                            )
+                        }
+                    }
                 }
+
             }
         }
     }
 }
 
 fun buttonOnClick(
-    currState: StopwatchStates,
     stateViewModel: StateViewModel,
+    buttonName: String,
 ) {
-    val newState = if (currState == StopwatchStates.RUNNING) {
-        StopwatchStates.PAUSED
-    } else {
-        StopwatchStates.RUNNING
+
+    val oldState = stateViewModel.stopwatchState.value
+    lateinit var newState: StopwatchStates
+
+    when (buttonName) {
+        "start" -> {
+            newState = if (oldState == StopwatchStates.RUNNING) {
+                StopwatchStates.PAUSED
+            } else {
+                StopwatchStates.RUNNING
+            }
+        }
+
+        "reset" -> {
+            newState = StopwatchStates.RESET
+        }
     }
+    Log.d(tag, "$buttonName was clicked, oldState: $oldState, newState: $newState")
+
     stateViewModel.onStopwatchStateChange(newState = newState)
 
     val currTime = System.currentTimeMillis()
 
     when (newState) {
-        // TODO: handle these casses; save startTime
+        // TODO: handle these cases; save startTime
         StopwatchStates.RUNNING -> {
+
             val pauseTimestampMs = stateViewModel.pauseTimestampMs.value
             // account for time the timer was paused moving by startTime forward by that amount of time
             val lengthOfPause = currTime - pauseTimestampMs; // TODO: this will probably bug out..
-            stateViewModel.onStartTimestampMsChange(newStartTimestampMs = currTime - lengthOfPause)
+
+            Log.d(tag, "\tlengthOfPause was known to be $lengthOfPause")
+            stateViewModel.onStartTimestampMsChange(newStartTimestampMs = stateViewModel.startTimestampMs.value + lengthOfPause)
         }
         StopwatchStates.PAUSED -> {
             stateViewModel.onPauseTimestampMsChange(newPauseTimestampMs = currTime)
+        }
+        StopwatchStates.RESET -> {
+            stateViewModel.onStartTimestampMsChange(newStartTimestampMs =  currTime)
+            stateViewModel.onPauseTimestampMsChange(newPauseTimestampMs = currTime)
+            stateViewModel.onClockChange(newClock = currTime, print=true)
         }
     }
 }

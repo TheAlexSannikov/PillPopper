@@ -15,7 +15,7 @@ enum class StopwatchStates {
     PAUSED,
 }
 
-class StateViewModel(dataStoreManager: DataStoreManager) : ViewModel() {
+class StateViewModel(dataStoreManager: DataStoreManager? = null) : ViewModel() {
     private val tag = "StateViewModel"
 
     private val _stopwatchState = MutableStateFlow<StopwatchStates>(StopwatchStates.RUNNING)
@@ -33,6 +33,7 @@ class StateViewModel(dataStoreManager: DataStoreManager) : ViewModel() {
     val startTimestampMs: StateFlow<Long> = _startTimestampMs.asStateFlow()
 
     fun onStartTimestampMsChange(newStartTimestampMs: Long) {
+        Log.d(tag, "newStartTimestampMs: " + newStartTimestampMs)
         _startTimestampMs.value = newStartTimestampMs
     }
 
@@ -50,10 +51,16 @@ class StateViewModel(dataStoreManager: DataStoreManager) : ViewModel() {
 
     val clock: StateFlow<Long> = _clock.asStateFlow()
 
-    fun onClockChange(newClock: Long) {
+    fun onClockChange(newClock: Long, print: Boolean? = null) {
+        val ssv = startTimestampMs.value
+        if(print == true) {
+            Log.d(tag, "startTimestampMs: $ssv\t\t\tstop newClock: $newClock")
+        }
         _clock.value = newClock
         // TODO: Refactor so display is updated in a flow
-        onDisplayTimeChange(((newClock - pauseTimestampMs.value )/ 1000).toString())
+        val elapsedTimeMs = newClock - startTimestampMs.value
+        onDisplayTimeChange("" + elapsedTimeMs / 1000 + ":" + (elapsedTimeMs % 1000)/ 10)
+//        onDisplayTimeChange(((newClock - startTimestampMs.value) / 1000).toString())
     }
 
     private val _displayTime = MutableStateFlow((clock.value / 1000).toString())
@@ -66,9 +73,9 @@ class StateViewModel(dataStoreManager: DataStoreManager) : ViewModel() {
 
     init {
         viewModelScope.launch {
-            val newState = dataStoreManager.read("stopwatchState")
-            val newpauseTimestampMs = dataStoreManager.read("pauseTimestampMs")
-            val newstartTimestampMs = dataStoreManager.read("startTimestampMs")
+            val newState = dataStoreManager?.read("stopwatchState")
+            val newpauseTimestampMs = dataStoreManager?.read("pauseTimestampMs")
+            val newstartTimestampMs = dataStoreManager?.read("startTimestampMs")
 
             Log.d(
                 tag,
