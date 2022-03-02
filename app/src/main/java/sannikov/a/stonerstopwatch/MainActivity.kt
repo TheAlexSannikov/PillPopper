@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
                         Log.d(tag, "startTicks, delayCount: $delayCount")
                     }
                     delayCount++
-                    stateViewModel.onClockChange(!stateViewModel.clock.value)
+                    stateViewModel.onClockChange(System.currentTimeMillis())
                 }
             }
         }

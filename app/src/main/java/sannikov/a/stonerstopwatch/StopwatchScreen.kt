@@ -1,5 +1,6 @@
 package sannikov.a.stonerstopwatch
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,22 +39,16 @@ fun StopwatchScreen(
     stateViewModel: StateViewModel,
 ) {
 
-
-//    val startTimestampMs: Long by stateViewModel.startTimestampMs.observeAsState(initial = 0)
-//    val stopwatchState: StopwatchStates by stateViewModel.stopwatchState.observeAsState(initial = StopwatchStates.RUNNING)
-//    val pauseTimestampMs by stateViewModel.pauseTimestampMs.observeAsState(initial = 0)
     val startTimestampMs by stateViewModel.startTimestampMs.collectAsState()
     val stopwatchState by stateViewModel.stopwatchState.collectAsState()
     val pauseTimestampMs by stateViewModel.pauseTimestampMs.collectAsState()
-    val clock by stateViewModel.clock.collectAsState()
+    val displayTime by stateViewModel.displayTime.collectAsState()
 
 
     StopwatchContent(
         stateViewModel = stateViewModel,
-        startTimestampMs = startTimestampMs,
-        pauseTimestampMs = pauseTimestampMs,
         stopwatchState = stopwatchState,
-        clock = clock,
+        displayTime = displayTime,
         handleColor = Color.Red,
         dayColor = Color(R.attr.colorPrimary),
         nightColor = Color(R.attr.colorSecondary),
@@ -64,9 +59,7 @@ fun StopwatchScreen(
 @Composable
 fun StopwatchContent(
     stateViewModel: StateViewModel,
-    pauseTimestampMs: Long,
-    startTimestampMs: Long,
-    clock: Boolean,
+    displayTime: String,
     stopwatchState: StopwatchStates,
     handleColor: Color,
     dayColor: Color,
@@ -75,7 +68,8 @@ fun StopwatchContent(
     initArcPercent: Float = 1f,
     strokeWidth: Dp = 5.dp,
 ) {
-    val currentTime = System.currentTimeMillis() - startTimestampMs
+    Log.d(tag, "\tdisplayTime: $displayTime")
+    val currentTime = stateViewModel.clock.value - stateViewModel.startTimestampMs.value // TODO: Better arc logic
     var size by remember {
         mutableStateOf(IntSize.Zero)
     }
@@ -84,8 +78,8 @@ fun StopwatchContent(
     }
 
     // run code whenever a key changes
-    LaunchedEffect(key1 = clock, key2 = stopwatchState) {
-        if (currentTime > 0 && stopwatchState == StopwatchStates.RUNNING) {
+    LaunchedEffect(key1 = displayTime) {
+        if (stopwatchState == StopwatchStates.RUNNING) {
             dayStartArcPercent = currentTime / denominatorTime.toFloat()
         }
     }
@@ -141,7 +135,7 @@ fun StopwatchContent(
                 // TODO: Make the clock update...
                 // the time on clock
                 Text(
-                    text = (currentTime / 1000).toString(),
+                    text = displayTime,
                     fontSize = 44.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
@@ -151,7 +145,6 @@ fun StopwatchContent(
                         buttonOnClick(
                             currState = stopwatchState,
                             stateViewModel = stateViewModel,
-                            pauseTimestampMs = pauseTimestampMs,
                         )
                     },
                     modifier = Modifier.align(Alignment.BottomCenter),
@@ -180,7 +173,6 @@ fun StopwatchContent(
 fun buttonOnClick(
     currState: StopwatchStates,
     stateViewModel: StateViewModel,
-    pauseTimestampMs: Long,
 ) {
     val newState = if (currState == StopwatchStates.RUNNING) {
         StopwatchStates.PAUSED
@@ -194,9 +186,10 @@ fun buttonOnClick(
     when (newState) {
         // TODO: handle these casses; save startTime
         StopwatchStates.RUNNING -> {
+            val pauseTimestampMs = stateViewModel.pauseTimestampMs.value
             // account for time the timer was paused moving by startTime forward by that amount of time
             val lengthOfPause = currTime - pauseTimestampMs; // TODO: this will probably bug out..
-            stateViewModel.onStartTimestampMsChange(newStartTimestampMs = currTime - pauseTimestampMs)
+            stateViewModel.onStartTimestampMsChange(newStartTimestampMs = currTime - lengthOfPause)
         }
         StopwatchStates.PAUSED -> {
             stateViewModel.onPauseTimestampMsChange(newPauseTimestampMs = currTime)

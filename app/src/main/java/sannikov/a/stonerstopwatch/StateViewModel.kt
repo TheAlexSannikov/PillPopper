@@ -1,8 +1,6 @@
 package sannikov.a.stonerstopwatch
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,13 +45,23 @@ class StateViewModel(dataStoreManager: DataStoreManager) : ViewModel() {
         _pauseTimestampMs.value = newPauseTimestampMs
     }
 
-    private val _clock = MutableStateFlow<Boolean>(false)
 
-    val clock: StateFlow<Boolean> = _clock.asStateFlow()
+    private val _clock = MutableStateFlow<Long>(System.currentTimeMillis())
 
-    fun onClockChange(newClock: Boolean) {
-        Log.d(tag, "newClock: $newClock")
+    val clock: StateFlow<Long> = _clock.asStateFlow()
+
+    fun onClockChange(newClock: Long) {
         _clock.value = newClock
+        // TODO: Refactor so display is updated in a flow
+        onDisplayTimeChange(((newClock - pauseTimestampMs.value )/ 1000).toString())
+    }
+
+    private val _displayTime = MutableStateFlow((clock.value / 1000).toString())
+
+    val displayTime: StateFlow<String> = _displayTime.asStateFlow()
+
+    fun onDisplayTimeChange(newDisplayTime: String) {
+        _displayTime.value = newDisplayTime
     }
 
     init {
@@ -62,11 +70,14 @@ class StateViewModel(dataStoreManager: DataStoreManager) : ViewModel() {
             val newpauseTimestampMs = dataStoreManager.read("pauseTimestampMs")
             val newstartTimestampMs = dataStoreManager.read("startTimestampMs")
 
-            Log.d(tag, "init, state: $newState, TimestampMs: $newpauseTimestampMs, startTimestampMs: $newstartTimestampMs")
+            Log.d(
+                tag,
+                "init, state: $newState, TimestampMs: $newpauseTimestampMs, startTimestampMs: $newstartTimestampMs"
+            )
 
             newState?.let { onStopwatchStateChange(newState as StopwatchStates) }
             newpauseTimestampMs?.let { onPauseTimestampMsChange(newpauseTimestampMs as Long) }
-            newstartTimestampMs?.let { onStartTimestampMsChange(newstartTimestampMs as Long)}
+            newstartTimestampMs?.let { onStartTimestampMsChange(newstartTimestampMs as Long) }
 
         }
     }
