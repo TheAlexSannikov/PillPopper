@@ -22,11 +22,14 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             StonerStopwatchTheme() {
-                MainScreenBottomNav(stateViewModel =  stateViewModel, dataStoreManager = dataStoreManager)
+                MainScreenBottomNav(stateViewModel =  stateViewModel)
             }
         }
     }
+
+    public override fun onStop() {
+        super.onStop()
+        dataStoreManager.saveState(stateViewModel)
+    }
 }
-
-
 

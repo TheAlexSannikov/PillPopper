@@ -15,7 +15,6 @@ import androidx.navigation.compose.rememberNavController
 @Composable
 fun MainScreenBottomNav(
     stateViewModel: StateViewModel,
-    dataStoreManager: DataStoreManager
 ) {
     val navController = rememberNavController()
     Scaffold(
@@ -24,7 +23,6 @@ fun MainScreenBottomNav(
         BottomNavGraph(
             navController = navController,
             stateViewModel = stateViewModel,
-            dataStoreManager = dataStoreManager,
         )
     }
 }

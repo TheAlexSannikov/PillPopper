@@ -9,7 +9,6 @@ import androidx.navigation.compose.composable
 fun BottomNavGraph(
     navController: NavHostController,
     stateViewModel: StateViewModel,
-    dataStoreManager: DataStoreManager
 ) {
 
     NavHost(
@@ -17,7 +16,7 @@ fun BottomNavGraph(
         startDestination = BottomBarScreen.Stopwatch.route
     ) {
         composable(route = BottomBarScreen.Stopwatch.route) {
-            StopwatchScreen(stateViewModel = stateViewModel, dataStoreManager = dataStoreManager)
+            StopwatchScreen(stateViewModel = stateViewModel)
         }
         composable(route = BottomBarScreen.Profile.route) {
             ProfileScreen("placeholder")
