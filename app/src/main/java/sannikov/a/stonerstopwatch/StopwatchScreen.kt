@@ -17,12 +17,15 @@ import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import sannikov.a.stonerstopwatch.ui.theme.AppTheme
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -48,8 +51,6 @@ fun StopwatchScreen(
         stopwatchState = stopwatchState,
         displayTime = displayTime,
         handleColor = Color.Red,
-        dayColor = Color(R.attr.colorPrimary),
-        nightColor = Color(R.attr.colorSecondary),
         modifier = Modifier.size(200.dp),
     )
 }
@@ -70,8 +71,6 @@ fun StopwatchScreenStub() {
         stopwatchState = stopwatchState,
         displayTime = displayTime,
         handleColor = Color.Red,
-        dayColor = Color(R.attr.colorPrimary),
-        nightColor = Color(R.attr.colorSecondary),
         modifier = Modifier.size(200.dp),
     )
 }
@@ -82,22 +81,22 @@ fun StopwatchContent(
     displayTime: String,
     stopwatchState: StopwatchStates,
     handleColor: Color,
-    dayColor: Color,
-    nightColor: Color,
     modifier: Modifier = Modifier,
     initArcPercent: Float = 1f,
     strokeWidth: Dp = 5.dp,
 ) {
-    Log.d(tag, "\tdisplayTime: $displayTime")
     val currentTime =
         stateViewModel.clock.value - stateViewModel.startTimestampMs.value // TODO: Better arc logic
     var size by remember { // TODO: Remove?
-        mutableStateOf(IntSize(width = 1000, height = 1000))
+        mutableStateOf(IntSize.Zero) // IntSize(width = 1000, height = 1000)
     }
 
     var dayStartArcPercent by remember {
         mutableStateOf(initArcPercent)
     }
+
+    val colorPrimary = AppTheme.colors.primary
+    val colorSecondary = AppTheme.colors.secondary
 
     // run code whenever a key changes
     LaunchedEffect(key1 = displayTime) {
@@ -106,26 +105,23 @@ fun StopwatchContent(
         }
     }
     Surface(
-        color = Color(R.attr.colorPrimary),
         modifier = Modifier.fillMaxSize()
     ) {
         Box(
-
+            contentAlignment = Alignment.Center,
         ) {
 
             Box(
 
                 modifier = modifier
-                    .width(80.dp)
-                    .height(80.dp)
-//                    .onSizeChanged {
-//                        size = it
-//                    }
+                    .onSizeChanged {
+                        size = it
+                    }
             ) {
                 // draw the circular arc of the stopwatch
                 Canvas(modifier = modifier) {
                     drawArc(
-                        color = dayColor,
+                        color = colorPrimary,
                         startAngle = -215f,
                         sweepAngle = 250f,
                         useCenter = false,
@@ -133,7 +129,7 @@ fun StopwatchContent(
                         style = Stroke(strokeWidth.toPx(), cap = StrokeCap.Round)
                     )
                     drawArc(
-                        color = nightColor,
+                        color = colorSecondary,
                         startAngle = -215f,
                         sweepAngle = 250f * dayStartArcPercent,
                         useCenter = false,
@@ -161,19 +157,29 @@ fun StopwatchContent(
                     modifier = Modifier
                         .padding(vertical = 60.dp)
                         .height(100.dp)
+                        .fillMaxWidth()
                 ) {
                     // the time on clock
-                    Text(
-                        text = displayTime,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .weight(1f)
+                    ) {
+                        Surface(color = Color.Transparent) {
+                            Text(
+                                text = displayTime,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(R.attr.colorOnSecondary),
+                            )
+                        }
+
+                    }
                     // encapsulate the buttons
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .weight(1f)
                     ) {
                         // start/stop button
                         Button(
@@ -270,9 +276,9 @@ fun buttonOnClick(
             stateViewModel.onPauseTimestampMsChange(newPauseTimestampMs = currTime)
         }
         StopwatchStates.RESET -> {
-            stateViewModel.onStartTimestampMsChange(newStartTimestampMs =  currTime)
+            stateViewModel.onStartTimestampMsChange(newStartTimestampMs = currTime)
             stateViewModel.onPauseTimestampMsChange(newPauseTimestampMs = currTime)
-            stateViewModel.onClockChange(newClock = currTime, print=true)
+            stateViewModel.onClockChange(newClock = currTime, print = true)
         }
     }
 }

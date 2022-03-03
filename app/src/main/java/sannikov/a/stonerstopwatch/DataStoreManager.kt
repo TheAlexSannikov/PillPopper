@@ -15,11 +15,13 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 
 
-class DataStoreManager(val context: Context) {
+class DataStoreManager private constructor(val context: Context) {
     private val tag = "DataStoreManager"
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "state")
 
-    companion object {
+    // Makes this a singleton, while also maintaining 'static' values
+    companion object : SingletonHolder<DataStoreManager, Context>(::DataStoreManager) {
+
         val STOPWATCH_STATE = intPreferencesKey("STOPWATCH_STATE")
         val PAUSE_TIMESTAMP_MS = longPreferencesKey("PAUSE_TIMESTAMP_MS")
         val START_TIMESTAMP_MS = longPreferencesKey("START_TIMESTAMP_MS")
@@ -36,6 +38,8 @@ class DataStoreManager(val context: Context) {
 
         }
     }
+
+//    companion object : SingletonHolder<DataStoreManager, Context>(::DataStoreManager) {}
 
 
     suspend fun save(keyName: String, newValue: Any) {
