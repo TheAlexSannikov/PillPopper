@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.graphics.ExperimentalGraphicsApi
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -13,8 +14,6 @@ import kotlinx.coroutines.launch
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import sannikov.a.stonerstopwatch.ui.theme.AppTheme
-import sannikov.a.stonerstopwatch.ui.theme.darkColors
 
 class MainActivity : ComponentActivity() {
     private val tag = "MainActivity"
@@ -36,7 +35,7 @@ class MainActivity : ComponentActivity() {
         startClock()
 
         setContent {
-            AppTheme() {
+            MaterialTheme() {
                 MainScreenBottomNav(stateViewModel = stateViewModel)
             }
         }

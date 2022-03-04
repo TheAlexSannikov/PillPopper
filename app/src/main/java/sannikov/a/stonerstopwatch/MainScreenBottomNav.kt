@@ -2,6 +2,7 @@ package sannikov.a.stonerstopwatch
 // https://youtu.be/gg-KBGH9T8s
 
 import android.content.Context
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -16,14 +17,17 @@ import androidx.navigation.compose.rememberNavController
 fun MainScreenBottomNav(
     stateViewModel: StateViewModel,
 ) {
-    val navController = rememberNavController()
-    Scaffold(
-        bottomBar = { BottomBar(navController = navController) }
-    ) {
-        BottomNavGraph(
-            navController = navController,
-            stateViewModel = stateViewModel,
-        )
+    val darkTheme: Boolean = isSystemInDarkTheme()
+    MaterialTheme(colors = if(darkTheme) darkColors() else lightColors()) {
+        val navController = rememberNavController()
+        Scaffold(
+            bottomBar = { BottomBar(navController = navController) }
+        ) {
+            BottomNavGraph(
+                navController = navController,
+                stateViewModel = stateViewModel,
+            )
+        }
     }
 }
 

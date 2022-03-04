@@ -1,79 +1,72 @@
 package sannikov.a.stonerstopwatch
 
+import android.util.DisplayMetrics
 import android.util.Log
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester.Companion.createRefs
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
-import sannikov.a.stonerstopwatch.ui.theme.AppTheme
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.ConstraintSet
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
+
 const val denominatorTime = 100000L
-val delayAmountMs = 100L
 val tag = "StopwatchScreen"
-
-
-@Composable
-fun StopwatchScreen(
-    stateViewModel: StateViewModel,
-) {
-
-    val startTimestampMs by stateViewModel.startTimestampMs.collectAsState()
-    val stopwatchState by stateViewModel.stopwatchState.collectAsState()
-    val pauseTimestampMs by stateViewModel.pauseTimestampMs.collectAsState()
-    val displayTime by stateViewModel.displayTime.collectAsState()
-
-
-    StopwatchContent(
-        stateViewModel = stateViewModel,
-        stopwatchState = stopwatchState,
-        displayTime = displayTime,
-        handleColor = Color.Red,
-        modifier = Modifier.size(200.dp),
-    )
-}
 
 @Preview
 @Composable
 fun StopwatchScreenStub() {
-
     val stateViewModel = StateViewModel()
     val startTimestampMs by stateViewModel.startTimestampMs.collectAsState()
     val stopwatchState by stateViewModel.stopwatchState.collectAsState()
     val pauseTimestampMs by stateViewModel.pauseTimestampMs.collectAsState()
     val displayTime by stateViewModel.displayTime.collectAsState()
 
+    StopwatchContent(
+        stateViewModel = stateViewModel,
+        stopwatchState = stopwatchState,
+        displayTime = displayTime,
+        handleColor = Color.Red,
+        modifier = Modifier.fillMaxSize()
+    )
+}
+
+@Composable
+fun StopwatchScreen(
+    stateViewModel: StateViewModel,
+) {
+
+    val stopwatchState by stateViewModel.stopwatchState.collectAsState()
+    val displayTime by stateViewModel.displayTime.collectAsState()
 
     StopwatchContent(
         stateViewModel = stateViewModel,
         stopwatchState = stopwatchState,
         displayTime = displayTime,
         handleColor = Color.Red,
-        modifier = Modifier.size(200.dp),
+        modifier = Modifier.aspectRatio(1F),
     )
 }
+
 
 @Composable
 fun StopwatchContent(
@@ -95,8 +88,8 @@ fun StopwatchContent(
         mutableStateOf(initArcPercent)
     }
 
-    val colorPrimary = AppTheme.colors.primary
-    val colorSecondary = AppTheme.colors.secondary
+    val colorPrimary = MaterialTheme.colors.primary
+    val colorSecondary = MaterialTheme.colors.secondary
 
     // run code whenever a key changes
     LaunchedEffect(key1 = displayTime) {
@@ -104,22 +97,54 @@ fun StopwatchContent(
             dayStartArcPercent = currentTime / denominatorTime.toFloat()
         }
     }
+    // background of app
     Surface(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colors.background,
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-        ) {
 
+        val constraints = ConstraintSet {
+
+            val container = createRefFor("container")
+            val arc = createRefFor("arc")
+//            val arcHandle = createRefFor("arcHandle")
+            val buttons = createRefFor("buttons")
+            val startStopButton = createRefFor("startStopButton")
+            val resetButton = createRefFor("resetButton")
+
+            constrain(container) {
+                centerVerticallyTo(parent)
+            }
+
+            constrain(arc) {
+                bottom.linkTo(parent.bottom)
+            }
+
+            constrain(buttons) {
+//                bottom.linkTo(parent.bottom)
+//                centerHorizontallyTo(parent)
+
+            }
+
+            constrain(startStopButton) {
+                top.linkTo(parent.top)
+                start.linkTo(parent.start)
+            }
+            constrain(resetButton) {
+                top.linkTo(parent.top)
+                end.linkTo(parent.end)
+            }
+
+        }
+        ConstraintLayout(constraints, modifier = Modifier.fillMaxSize()) {
             Box(
-
                 modifier = modifier
                     .onSizeChanged {
                         size = it
                     }
             ) {
                 // draw the circular arc of the stopwatch
-                Canvas(modifier = modifier) {
+                Canvas(modifier = modifier.layoutId("arc")) {
                     drawArc(
                         color = colorPrimary,
                         startAngle = -215f,
@@ -154,35 +179,30 @@ fun StopwatchContent(
                 }
                 Column(
                     verticalArrangement = Arrangement.SpaceBetween,
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .padding(vertical = 60.dp)
-                        .height(100.dp)
+                        .layoutId("container")
+//                        .background(Color.Magenta)
+                        .padding(vertical = 0.dp)
+                        .fillMaxHeight()
                         .fillMaxWidth()
                 ) {
                     // the time on clock
                     Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .weight(1f)
+                        modifier = modifier.layoutId("buttons")
                     ) {
-                        Surface(color = Color.Transparent) {
-                            Text(
-                                text = displayTime,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(R.attr.colorOnSecondary),
-                            )
-                        }
-
+                        Text(
+                            style = MaterialTheme.typography.h4,
+                            text = displayTime,
+                            color = MaterialTheme.colors.onBackground,
+                        )
                     }
-                    // encapsulate the buttons
                     Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .weight(1f)
+                        modifier = modifier.layoutId("buttons")
                     ) {
                         // start/stop button
                         Button(
+                            modifier = Modifier.layoutId("startStopButton"),
                             onClick = {
                                 buttonOnClick(
                                     stateViewModel = stateViewModel,
@@ -207,6 +227,7 @@ fun StopwatchContent(
 
                         // reset button
                         Button(
+                            modifier = Modifier.layoutId("resetButton"),
                             onClick = {
                                 buttonOnClick(
                                     stateViewModel = stateViewModel,
@@ -220,15 +241,16 @@ fun StopwatchContent(
                                 } else {
                                     Color.Red
                                 }
-                            )
-                        ) {
+                            ),
+
+
+                            ) {
                             Text(
                                 text = "Reset"
                             )
                         }
                     }
                 }
-
             }
         }
     }
