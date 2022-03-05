@@ -28,7 +28,7 @@ class StateViewModel(dataStoreManager: DataStoreManager? = null) : ViewModel() {
     }
 
 
-    private val _startTimestampMs: MutableStateFlow<Long> = MutableStateFlow(denominatorTime)
+    private val _startTimestampMs: MutableStateFlow<Long> = MutableStateFlow(period)
 
     val startTimestampMs: StateFlow<Long> = _startTimestampMs.asStateFlow()
 
@@ -59,7 +59,7 @@ class StateViewModel(dataStoreManager: DataStoreManager? = null) : ViewModel() {
         _clock.value = newClock
         // TODO: Refactor so display is updated in a flow
         val elapsedTimeMs = newClock - startTimestampMs.value
-        onDisplayTimeChange("" + elapsedTimeMs / 1000 + ":" + (elapsedTimeMs % 1000)/ 10)
+        onDisplayTimeChange(TimeFormat.format(elapsedTimeMs))
 //        onDisplayTimeChange(((newClock - startTimestampMs.value) / 1000).toString())
     }
 
