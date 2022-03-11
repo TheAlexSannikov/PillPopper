@@ -9,7 +9,7 @@ object TimeFormat {
     val MS_PER_HOUR = 3600000L
 
     // Formats to h:mm:ss:SS
-    public fun format(ms: Long): String {
+    fun format(ms: Long): String {
         val hrs = (ms / MS_PER_HOUR)
         val mins = ((ms % MS_PER_HOUR) / MS_PER_MINUTE)
         val secs = (ms % MS_PER_MINUTE) / MS_PER_SECOND

@@ -3,10 +3,13 @@ package sannikov.a.stonerstopwatch
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+import javax.inject.Named
 
 
 enum class StopwatchStates {
@@ -15,7 +18,9 @@ enum class StopwatchStates {
     PAUSED,
 }
 
-class StateViewModel(dataStoreManager: DataStoreManager? = null) : ViewModel() {
+//class StateViewModel(dataStoreManager: DataStoreManager? = null) : ViewModel() {
+@HiltViewModel
+class StateViewModel @Inject constructor(@Named("dataStoreManager") dataStoreManager: DataStoreManager) : ViewModel() {
     private val tag = "StateViewModel"
 
     private val _stopwatchState = MutableStateFlow<StopwatchStates>(StopwatchStates.RUNNING)
@@ -68,10 +73,12 @@ class StateViewModel(dataStoreManager: DataStoreManager? = null) : ViewModel() {
     val displayTime: StateFlow<String> = _displayTime.asStateFlow()
 
     fun onDisplayTimeChange(newDisplayTime: String) {
+//        Log.d(tag, "newDisplayTime: $newDisplayTime")
         _displayTime.value = newDisplayTime
     }
 
     init {
+        Log.d(tag, "init!")
         viewModelScope.launch {
             val newState = dataStoreManager?.read("stopwatchState")
             val newpauseTimestampMs = dataStoreManager?.read("pauseTimestampMs")

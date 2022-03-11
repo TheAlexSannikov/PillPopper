@@ -4,6 +4,15 @@
 		Theme.StonerStopwatch
 		night\Theme.StonerStopwatch
 
+# Styles
+	MainActivity
+		Theme.kt
+			AppColors
+			AppDimensions
+			AppTypography
+
+
+
 # Navigation
 
 	MainActivity:onCreate
@@ -14,4 +23,4 @@
 # MutableLiveData / Persistence
 	MainActivity
 		StateViewModel 			(MutableLiveData (depricated) / MutableStateFlow)
-			dataStoreManager 	(DataStore)
+			dataStoreManager 	(DataStore) TODO: DataLayer?

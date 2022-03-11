@@ -14,9 +14,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun MainScreenBottomNav(
-    stateViewModel: StateViewModel,
-) {
+fun MainScreenBottomNav() {
     val darkTheme: Boolean = isSystemInDarkTheme()
     MaterialTheme(colors = if(darkTheme) darkColors() else lightColors()) {
         val navController = rememberNavController()
@@ -25,7 +23,6 @@ fun MainScreenBottomNav(
         ) {
             BottomNavGraph(
                 navController = navController,
-                stateViewModel = stateViewModel,
             )
         }
     }
