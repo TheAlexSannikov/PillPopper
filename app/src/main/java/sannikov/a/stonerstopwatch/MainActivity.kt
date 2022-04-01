@@ -25,11 +25,11 @@ class MainActivity : AppCompatActivity() {
     private val tag = "MainActivity"
 
     @Inject
-    @Named("dataStoreManager")
+//    @Named("dataStoreManager")
     lateinit var dataStoreManager: DataStoreManager
 
     @Inject
-    @Named("stateViewModel")
+//    @Named("stateViewModel") // I guess this annotation causes issues when using hiltViewModel() within a composable?
     lateinit var stateViewModel: StateViewModel
 
     private val timeBetweenTicksMs = 10L
@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
                 while (true) {
                     // block when the stopwatch is not RUNNING
                     if (stateViewModel.stopwatchState.value != StopwatchStates.RUNNING) {
-                        Log.d(tag, "startClock, sleeping on stopwatchState")
+                        Log.d(tag, "startClock, sleeping on stopwatchState. stateViewModel: $stateViewModel")
                         stateViewModel.stopwatchState.first { newState -> newState == StopwatchStates.RUNNING }
                     }
                     delay(timeBetweenTicksMs)
@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
                         Log.d(tag, "startTicks, delayCount: $delayCount")
                     }
                     delayCount++
-                    stateViewModel.onClockChange(System.currentTimeMillis())
+                    stateViewModel.onClockChange(newClock = System.currentTimeMillis(), print = false)
                 }
             }
         }
@@ -71,7 +71,7 @@ class MainActivity : AppCompatActivity() {
 
     public override fun onStop() {
         super.onStop()
-        dataStoreManager.saveState(stateViewModel = stateViewModel)
+        stateViewModel.saveState()
     }
 }
 

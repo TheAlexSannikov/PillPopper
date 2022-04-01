@@ -5,7 +5,6 @@ import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -13,7 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -23,10 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import javax.inject.Inject
-import javax.inject.Named
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -45,7 +40,6 @@ fun StopwatchScreenStub(stateViewModel : StateViewModel = hiltViewModel()) {
 //    @Named("stateViewModel")
 //    lateinit var stateViewModel: StateViewModel
 
-
     val stopwatchState by stateViewModel.stopwatchState.collectAsState()
     happyEarth =
         BitmapFactory.decodeResource(LocalContext.current.resources, R.drawable.happy_earth_no_bg)
@@ -60,7 +54,6 @@ fun StopwatchScreenStub(stateViewModel : StateViewModel = hiltViewModel()) {
 
 @Composable
 fun StopwatchScreen(stateViewModel : StateViewModel = hiltViewModel()) {
-    Log.d(tag, "LocalViewModelStoreOwner: ${LocalViewModelStoreOwner}")
 
     val stopwatchState by stateViewModel.stopwatchState.collectAsState()
     happyEarth =
@@ -82,8 +75,6 @@ fun StopwatchContent(
     modifier: Modifier = Modifier,
 ) {
     val stateViewModel = hiltViewModel<StateViewModel>()
-    Log.d(tag, "displayTime: $displayTime")
-    Log.d(tag, "stopwatchState: $stopwatchState")
 
 //    val displayTime by stateViewModel.displayTime.collectAsState()
     // background of app
@@ -188,16 +179,16 @@ fun DrawProgressionArc(stateViewModel : StateViewModel = viewModel(), displayTim
     val colorSecondary = MaterialTheme.colors.secondary
     val colorPrimaryVariant = MaterialTheme.colors.primaryVariant
     val strokeWidth: Dp = 30.dp
-    val currentTime =
+    val elapsedTime =
         stateViewModel.clock.value - stateViewModel.startTimestampMs.value // TODO: Better arc logic
     val initArcPercent = 1F
     var dayStartArcPercent by remember {
         mutableStateOf(initArcPercent)
     }
-    val arcColorToggle = (currentTime % (2 * period)) >= period
+    val arcColorToggle = (elapsedTime % (2 * period)) >= period
     // run code whenever a key changes
     LaunchedEffect(key1 = displayTime) {
-        dayStartArcPercent = currentTime / period.toFloat()
+        dayStartArcPercent = elapsedTime / period.toFloat()
     }
     val painter = painterResource(id = R.drawable.happy_earth_no_bg_paint_2)
     Image(
@@ -285,12 +276,15 @@ fun buttonOnClick(
             val lengthOfPause = currTime - pauseTimestampMs; // TODO: this will probably bug out..
 
             Log.d(tag, "\tlengthOfPause was known to be $lengthOfPause")
+            Log.d(tag, "buttonOnClick(); newStartTimestampMs = ${stateViewModel.startTimestampMs.value + lengthOfPause}")
             stateViewModel.onStartTimestampMsChange(newStartTimestampMs = stateViewModel.startTimestampMs.value + lengthOfPause)
         }
         StopwatchStates.PAUSED -> {
+            Log.d(tag, "buttonOnClick(); newPauseTimestampMs = $currTime")
             stateViewModel.onPauseTimestampMsChange(newPauseTimestampMs = currTime)
         }
         StopwatchStates.RESET -> {
+            Log.d(tag, "buttonOnClick(); newStartTimestampMs = $currTime, newPauseTimestampMs = $currTime, newClock = $currTime")
             stateViewModel.onStartTimestampMsChange(newStartTimestampMs = currTime)
             stateViewModel.onPauseTimestampMsChange(newPauseTimestampMs = currTime)
             stateViewModel.onClockChange(newClock = currTime, print = true)

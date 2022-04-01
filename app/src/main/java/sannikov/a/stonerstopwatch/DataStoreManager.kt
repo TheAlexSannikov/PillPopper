@@ -67,7 +67,7 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
 
 
     suspend fun save(keyName: String, newValue: Any) {
-        Log.d(tag, "savetoDataStore: keyName: $keyName, newValue: " + newValue)
+        Log.d(tag, "save(); keyName: $keyName, newValue: $newValue")
         val key = getKey(keyName)
 
         dataStore.edit { settings ->
@@ -105,20 +105,6 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
             else -> {
                 throw InvalidDataStoreKeyException("$tag: fell into default case of read function with keyName: $keyName")
             }
-        }
-    }
-
-    // saves all values
-    fun saveState(stateViewModel: StateViewModel) {
-//        @Named("StateViewModel")
-//        lateinit var stateViewModel: StateViewModel
-
-        Log.d(tag, "saveState:")
-
-        GlobalScope.launch(Dispatchers.IO) {
-            save("stopwatchState", stateViewModel.stopwatchState.value.ordinal)
-            save("pauseTimestampMs", stateViewModel.pauseTimestampMs.value)
-            save("startTimestampMs", stateViewModel.startTimestampMs.value)
         }
     }
 }

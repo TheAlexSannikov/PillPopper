@@ -37,7 +37,7 @@ internal object AppModule {
 
     @Singleton
     @Provides
-    @Named("stateViewModel")
+//    @Named("stateViewModel")
     fun provideStateViewModel(@Named("dataStoreManager") dataStoreManager : DataStoreManager): StateViewModel = StateViewModel(dataStoreManager)
 
 

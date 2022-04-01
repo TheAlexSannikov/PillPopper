@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +22,8 @@ enum class StopwatchStates {
 
 //class StateViewModel(dataStoreManager: DataStoreManager? = null) : ViewModel() {
 @HiltViewModel
-class StateViewModel @Inject constructor(@Named("dataStoreManager") dataStoreManager: DataStoreManager) : ViewModel() {
+class StateViewModel @Inject constructor(@Named("dataStoreManager") private val dataStoreManager: DataStoreManager) :
+    ViewModel() {
     private val tag = "StateViewModel"
 
     private val _stopwatchState = MutableStateFlow<StopwatchStates>(StopwatchStates.RUNNING)
@@ -28,7 +31,7 @@ class StateViewModel @Inject constructor(@Named("dataStoreManager") dataStoreMan
     val stopwatchState: StateFlow<StopwatchStates> = _stopwatchState.asStateFlow()
 
     fun onStopwatchStateChange(newState: StopwatchStates) {
-        Log.d(tag, "newState: " + newState)
+        Log.d(tag, "newState: $newState")
         _stopwatchState.value = newState
     }
 
@@ -58,17 +61,29 @@ class StateViewModel @Inject constructor(@Named("dataStoreManager") dataStoreMan
 
     fun onClockChange(newClock: Long, print: Boolean? = null) {
         val ssv = startTimestampMs.value
-        if(print == true) {
-            Log.d(tag, "startTimestampMs: $ssv\t\t\tstop newClock: $newClock")
-        }
+//        if(print == true) {
+//            Log.d(tag, "startTimestampMs: $ssv\t\t\tstop newClock: $newClock")
+//        }
         _clock.value = newClock
         // TODO: Refactor so display is updated in a flow
-        val elapsedTimeMs = newClock - startTimestampMs.value
+
+
+        val elapsedTimeMs = when (stopwatchState.value) {
+            StopwatchStates.RUNNING -> {
+                newClock - startTimestampMs.value
+            }
+            StopwatchStates.PAUSED -> {
+                pauseTimestampMs.value - startTimestampMs.value
+            }
+            StopwatchStates.RESET -> {
+                0
+            }
+        }
+
         onDisplayTimeChange(TimeFormat.format(elapsedTimeMs))
-//        onDisplayTimeChange(((newClock - startTimestampMs.value) / 1000).toString())
     }
 
-    private val _displayTime = MutableStateFlow((clock.value / 1000).toString())
+    private val _displayTime = MutableStateFlow("initial load")
 
     val displayTime: StateFlow<String> = _displayTime.asStateFlow()
 
@@ -80,19 +95,33 @@ class StateViewModel @Inject constructor(@Named("dataStoreManager") dataStoreMan
     init {
         Log.d(tag, "init!")
         viewModelScope.launch {
-            val newState = dataStoreManager?.read("stopwatchState")
-            val newpauseTimestampMs = dataStoreManager?.read("pauseTimestampMs")
-            val newstartTimestampMs = dataStoreManager?.read("startTimestampMs")
+            // TODO: may want to put back in null checks:   dataStoreManager?.read
+            val newState = dataStoreManager.read("stopwatchState")
+            val newpauseTimestampMs = dataStoreManager.read("pauseTimestampMs")
+            val newstartTimestampMs = dataStoreManager.read("startTimestampMs")
 
             Log.d(
                 tag,
-                "init, state: $newState, TimestampMs: $newpauseTimestampMs, startTimestampMs: $newstartTimestampMs"
+                "init, state: $newState, pauseTimestampMs: $newpauseTimestampMs, startTimestampMs: $newstartTimestampMs"
             )
 
             newState?.let { onStopwatchStateChange(newState as StopwatchStates) }
             newpauseTimestampMs?.let { onPauseTimestampMsChange(newpauseTimestampMs as Long) }
             newstartTimestampMs?.let { onStartTimestampMsChange(newstartTimestampMs as Long) }
 
+        }
+    }
+
+    // saves all values to persistent storage
+    fun saveState() {
+        Log.d(tag, "saveState:")
+        GlobalScope.launch(Dispatchers.IO) {
+            dataStoreManager?.save(
+                "stopwatchState",
+                this@StateViewModel.stopwatchState.value.ordinal
+            )
+            dataStoreManager?.save("pauseTimestampMs", this@StateViewModel.pauseTimestampMs.value)
+            dataStoreManager?.save("startTimestampMs", this@StateViewModel.startTimestampMs.value)
         }
     }
 
