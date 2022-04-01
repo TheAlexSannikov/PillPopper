@@ -43,10 +43,10 @@ fun StopwatchScreenStub(stateViewModel : StateViewModel = hiltViewModel()) {
     val stopwatchState by stateViewModel.stopwatchState.collectAsState()
     happyEarth =
         BitmapFactory.decodeResource(LocalContext.current.resources, R.drawable.happy_earth_no_bg)
-    val displayTime by stateViewModel.displayTime.collectAsState()
+    val elapsedTimeMs by stateViewModel.elapsedTimeMs.collectAsState()
 
     StopwatchContent(
-        displayTime = displayTime,
+        elapsedTimeMs = elapsedTimeMs,
         stopwatchState = stopwatchState,
         modifier = Modifier.fillMaxSize()
     )
@@ -58,10 +58,10 @@ fun StopwatchScreen(stateViewModel : StateViewModel = hiltViewModel()) {
     val stopwatchState by stateViewModel.stopwatchState.collectAsState()
     happyEarth =
         BitmapFactory.decodeResource(LocalContext.current.resources, R.drawable.happy_earth_no_bg)
-    val displayTime by stateViewModel.displayTime.collectAsState()
+    val elapsedTimeMs by stateViewModel.elapsedTimeMs.collectAsState()
 
     StopwatchContent(
-        displayTime = displayTime,
+        elapsedTimeMs = elapsedTimeMs,
         stopwatchState = stopwatchState,
         modifier = Modifier.aspectRatio(1F),
     )
@@ -70,7 +70,7 @@ fun StopwatchScreen(stateViewModel : StateViewModel = hiltViewModel()) {
 
 @Composable
 fun StopwatchContent(
-    displayTime: String,
+    elapsedTimeMs: Long,
     stopwatchState: StopwatchStates,
     modifier: Modifier = Modifier,
 ) {
@@ -106,13 +106,13 @@ fun StopwatchContent(
 //                    .height(IntrinsicSize.Max)
                     .wrapContentSize()
             ) {
-                DrawProgressionArc(stateViewModel = stateViewModel, displayTime = displayTime)
+                DrawProgressionArc(elapsedTimeMs = elapsedTimeMs)
             }
 
             // the time on clock
             Text(
                 style = MaterialTheme.typography.h4,
-                text = displayTime,
+                text = TimeFormat.format(elapsedTimeMs),
                 color = MaterialTheme.colors.onBackground,
             )
 
@@ -174,22 +174,14 @@ fun StopwatchContent(
 
 // Now we're getting somewhere...
 @Composable
-fun DrawProgressionArc(stateViewModel : StateViewModel = viewModel(), displayTime: String) {
+fun DrawProgressionArc(elapsedTimeMs: Long) {
     val colorPrimary = MaterialTheme.colors.primary
     val colorSecondary = MaterialTheme.colors.secondary
     val colorPrimaryVariant = MaterialTheme.colors.primaryVariant
     val strokeWidth: Dp = 30.dp
-    val elapsedTime =
-        stateViewModel.clock.value - stateViewModel.startTimestampMs.value // TODO: Better arc logic
     val initArcPercent = 1F
-    var dayStartArcPercent by remember {
-        mutableStateOf(initArcPercent)
-    }
-    val arcColorToggle = (elapsedTime % (2 * period)) >= period
-    // run code whenever a key changes
-    LaunchedEffect(key1 = displayTime) {
-        dayStartArcPercent = elapsedTime / period.toFloat()
-    }
+    val dayStartArcPercent = elapsedTimeMs / period.toFloat()
+    val arcColorToggle = (elapsedTimeMs % (2 * period)) >= period
     val painter = painterResource(id = R.drawable.happy_earth_no_bg_paint_2)
     Image(
         painter = painter, contentDescription = "Happy Earth!", modifier = Modifier.size(

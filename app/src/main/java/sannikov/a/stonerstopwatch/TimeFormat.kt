@@ -4,9 +4,9 @@ import android.os.Build
 import java.time.format.DateTimeFormatter
 
 object TimeFormat {
-    val MS_PER_SECOND = 1000L
-    val MS_PER_MINUTE = 60000L
-    val MS_PER_HOUR = 3600000L
+    private const val MS_PER_SECOND = 1000L
+    private const val MS_PER_MINUTE = 60000L
+    private const val MS_PER_HOUR = 3600000L
 
     // Formats to h:mm:ss:SS
     fun format(ms: Long): String {

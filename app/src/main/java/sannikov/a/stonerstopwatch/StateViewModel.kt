@@ -26,7 +26,7 @@ class StateViewModel @Inject constructor(@Named("dataStoreManager") private val 
     ViewModel() {
     private val tag = "StateViewModel"
 
-    private val _stopwatchState = MutableStateFlow<StopwatchStates>(StopwatchStates.RUNNING)
+    private val _stopwatchState = MutableStateFlow<StopwatchStates>(StopwatchStates.PAUSED)
 
     val stopwatchState: StateFlow<StopwatchStates> = _stopwatchState.asStateFlow()
 
@@ -66,8 +66,6 @@ class StateViewModel @Inject constructor(@Named("dataStoreManager") private val 
 //        }
         _clock.value = newClock
         // TODO: Refactor so display is updated in a flow
-
-
         val elapsedTimeMs = when (stopwatchState.value) {
             StopwatchStates.RUNNING -> {
                 newClock - startTimestampMs.value
@@ -80,16 +78,26 @@ class StateViewModel @Inject constructor(@Named("dataStoreManager") private val 
             }
         }
 
-        onDisplayTimeChange(TimeFormat.format(elapsedTimeMs))
+        onElapsedTimeChange(elapsedTimeMs)
     }
 
-    private val _displayTime = MutableStateFlow("initial load")
+    private val _elapsedTimeMs = MutableStateFlow(value = when (stopwatchState.value) {
+        StopwatchStates.RUNNING -> {
+            System.currentTimeMillis() - startTimestampMs.value
+        }
+        StopwatchStates.PAUSED -> {
+            pauseTimestampMs.value - startTimestampMs.value
+        }
+        StopwatchStates.RESET -> {
+            0
+        }
+    })
 
-    val displayTime: StateFlow<String> = _displayTime.asStateFlow()
+    val elapsedTimeMs: StateFlow<Long> = _elapsedTimeMs.asStateFlow()
 
-    fun onDisplayTimeChange(newDisplayTime: String) {
+    fun onElapsedTimeChange(newElapsedTimeMs: Long) {
 //        Log.d(tag, "newDisplayTime: $newDisplayTime")
-        _displayTime.value = newDisplayTime
+        _elapsedTimeMs.value = newElapsedTimeMs
     }
 
     init {
