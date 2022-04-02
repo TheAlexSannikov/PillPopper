@@ -16,9 +16,9 @@ sealed class BottomBarScreen(
         title = "Stopwatch",
         icon = Icons.Default.Home
     )
-    object Profile: BottomBarScreen(
-        route = "profile",
-        title = "Profile",
+    object PillTimer: BottomBarScreen(
+        route = "pillTimer",
+        title = "Hi Mom!",
         icon = Icons.Default.Person
     )
 

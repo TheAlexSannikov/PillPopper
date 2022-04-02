@@ -1,4 +1,4 @@
-package sannikov.a.stonerstopwatch
+package sannikov.a.stonerstopwatch.views
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -21,15 +21,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import sannikov.a.stonerstopwatch.R
+import sannikov.a.stonerstopwatch.TimeFormat
+import sannikov.a.stonerstopwatch.viewmodels.StateViewModel
+import sannikov.a.stonerstopwatch.viewmodels.StopwatchStates
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
 
-const val period = 60000L
+const val STOPWATCH_PERIOD_MS = 60000L
 const val arcStartPosition = 180F // 0 is 3 o'clock, 90 is 12 o'clock
-val tag = "StopwatchScreen"
+const val TAG_STOPWATCH_SCREEN = "StopwatchScreen"
 val happyEarthSize = 300.dp
 
 lateinit var happyEarth: Bitmap
@@ -106,7 +109,7 @@ fun StopwatchContent(
 //                    .height(IntrinsicSize.Max)
                     .wrapContentSize()
             ) {
-                DrawProgressionArc(elapsedTimeMs = elapsedTimeMs)
+                DrawProgressionArc(elapsedTimeMs = elapsedTimeMs, periodMs = STOPWATCH_PERIOD_MS)
             }
 
             // the time on clock
@@ -126,7 +129,7 @@ fun StopwatchContent(
                 // start/stop button
                 Button(
                     onClick = {
-                        buttonOnClick(
+                        stopwatchButtonOnClick(
                             buttonName = "start",
                             stateViewModel = stateViewModel,
                         )
@@ -154,7 +157,7 @@ fun StopwatchContent(
                 // reset button
                 Button(
                     onClick = {
-                        buttonOnClick(
+                        stopwatchButtonOnClick(
                             buttonName = "reset",
                             stateViewModel = stateViewModel,
                         )
@@ -174,14 +177,13 @@ fun StopwatchContent(
 
 // Now we're getting somewhere...
 @Composable
-fun DrawProgressionArc(elapsedTimeMs: Long) {
+fun DrawProgressionArc(elapsedTimeMs: Long, periodMs: Long) {
     val colorPrimary = MaterialTheme.colors.primary
     val colorSecondary = MaterialTheme.colors.secondary
     val colorPrimaryVariant = MaterialTheme.colors.primaryVariant
     val strokeWidth: Dp = 30.dp
-    val initArcPercent = 1F
-    val dayStartArcPercent = elapsedTimeMs / period.toFloat()
-    val arcColorToggle = (elapsedTimeMs % (2 * period)) >= period
+    val dayStartArcPercent = elapsedTimeMs / periodMs.toFloat()
+    val arcColorToggle = (elapsedTimeMs % (2 * periodMs)) >= periodMs
     val painter = painterResource(id = R.drawable.happy_earth_no_bg_paint_2)
     Image(
         painter = painter, contentDescription = "Happy Earth!", modifier = Modifier.size(
@@ -233,7 +235,7 @@ fun DrawProgressionArc(elapsedTimeMs: Long) {
 
 }
 
-fun buttonOnClick(
+fun stopwatchButtonOnClick(
     buttonName: String,
     stateViewModel: StateViewModel, // TODO: Hilt for DI?
 ) {
@@ -253,7 +255,7 @@ fun buttonOnClick(
             newState = StopwatchStates.RESET
         }
     }
-    Log.d(tag, "$buttonName was clicked, oldState: $oldState, newState: $newState")
+    Log.d(TAG_STOPWATCH_SCREEN, "$buttonName was clicked, oldState: $oldState, newState: $newState")
 
     stateViewModel.onStopwatchStateChange(newState = newState)
 
@@ -267,16 +269,16 @@ fun buttonOnClick(
             // account for time the timer was paused moving by startTime forward by that amount of time
             val lengthOfPause = currTime - pauseTimestampMs; // TODO: this will probably bug out..
 
-            Log.d(tag, "\tlengthOfPause was known to be $lengthOfPause")
-            Log.d(tag, "buttonOnClick(); newStartTimestampMs = ${stateViewModel.startTimestampMs.value + lengthOfPause}")
+            Log.d(TAG_STOPWATCH_SCREEN, "\tlengthOfPause was known to be $lengthOfPause")
+            Log.d(TAG_STOPWATCH_SCREEN, "buttonOnClick(); newStartTimestampMs = ${stateViewModel.startTimestampMs.value + lengthOfPause}")
             stateViewModel.onStartTimestampMsChange(newStartTimestampMs = stateViewModel.startTimestampMs.value + lengthOfPause)
         }
         StopwatchStates.PAUSED -> {
-            Log.d(tag, "buttonOnClick(); newPauseTimestampMs = $currTime")
+            Log.d(TAG_STOPWATCH_SCREEN, "buttonOnClick(); newPauseTimestampMs = $currTime")
             stateViewModel.onPauseTimestampMsChange(newPauseTimestampMs = currTime)
         }
         StopwatchStates.RESET -> {
-            Log.d(tag, "buttonOnClick(); newStartTimestampMs = $currTime, newPauseTimestampMs = $currTime, newClock = $currTime")
+            Log.d(TAG_STOPWATCH_SCREEN, "buttonOnClick(); newStartTimestampMs = $currTime, newPauseTimestampMs = $currTime, newClock = $currTime")
             stateViewModel.onStartTimestampMsChange(newStartTimestampMs = currTime)
             stateViewModel.onPauseTimestampMsChange(newPauseTimestampMs = currTime)
             stateViewModel.onClockChange(newClock = currTime, print = true)

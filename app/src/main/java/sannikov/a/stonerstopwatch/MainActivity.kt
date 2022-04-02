@@ -1,24 +1,23 @@
 package sannikov.a.stonerstopwatch
 
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material.MaterialTheme
-import androidx.compose.ui.graphics.ExperimentalGraphicsApi
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
-//import sannikov.a.stonerstopwatch.ui.theme.StonerStopwatchTheme
 import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import sannikov.a.stonerstopwatch.data.DataStoreManager
+import sannikov.a.stonerstopwatch.viewmodels.StateViewModel
+import sannikov.a.stonerstopwatch.viewmodels.StopwatchStates
+
 import javax.inject.Inject
-import javax.inject.Named
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -28,9 +27,10 @@ class MainActivity : AppCompatActivity() {
 //    @Named("dataStoreManager")
     lateinit var dataStoreManager: DataStoreManager
 
-    @Inject
-//    @Named("stateViewModel") // I guess this annotation causes issues when using hiltViewModel() within a composable?
-    lateinit var stateViewModel: StateViewModel
+//    @Inject
+////    @Named("stateViewModel") // I guess this annotation causes issues when using hiltViewModel() within a composable?
+//    lateinit var stateViewModel: StateViewModel
+    private val stateViewModel: StateViewModel by viewModels()
 
     private val timeBetweenTicksMs = 10L
 

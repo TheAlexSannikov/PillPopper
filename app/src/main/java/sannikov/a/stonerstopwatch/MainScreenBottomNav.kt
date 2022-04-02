@@ -32,7 +32,7 @@ fun MainScreenBottomNav() {
 fun BottomBar(navController: NavHostController) {
     val screens = listOf(
         BottomBarScreen.Stopwatch,
-        BottomBarScreen.Profile,
+        BottomBarScreen.PillTimer,
         BottomBarScreen.Settings,
     )
     val navBackStackEntry by navController.currentBackStackEntryAsState()

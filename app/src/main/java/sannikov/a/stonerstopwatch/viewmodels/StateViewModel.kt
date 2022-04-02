@@ -1,4 +1,4 @@
-package sannikov.a.stonerstopwatch
+package sannikov.a.stonerstopwatch.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import sannikov.a.stonerstopwatch.data.DataStoreManager
+import sannikov.a.stonerstopwatch.views.STOPWATCH_PERIOD_MS
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -36,7 +38,7 @@ class StateViewModel @Inject constructor(@Named("dataStoreManager") private val 
     }
 
 
-    private val _startTimestampMs: MutableStateFlow<Long> = MutableStateFlow(period)
+    private val _startTimestampMs: MutableStateFlow<Long> = MutableStateFlow(STOPWATCH_PERIOD_MS)
 
     val startTimestampMs: StateFlow<Long> = _startTimestampMs.asStateFlow()
 
@@ -60,7 +62,7 @@ class StateViewModel @Inject constructor(@Named("dataStoreManager") private val 
     val clock: StateFlow<Long> = _clock.asStateFlow()
 
     fun onClockChange(newClock: Long, print: Boolean? = null) {
-        val ssv = startTimestampMs.value
+//        val ssv = startTimestampMs.value
 //        if(print == true) {
 //            Log.d(tag, "startTimestampMs: $ssv\t\t\tstop newClock: $newClock")
 //        }
@@ -81,17 +83,19 @@ class StateViewModel @Inject constructor(@Named("dataStoreManager") private val 
         onElapsedTimeChange(elapsedTimeMs)
     }
 
-    private val _elapsedTimeMs = MutableStateFlow(value = when (stopwatchState.value) {
-        StopwatchStates.RUNNING -> {
-            System.currentTimeMillis() - startTimestampMs.value
+    private val _elapsedTimeMs = MutableStateFlow(
+        value = when (stopwatchState.value) {
+            StopwatchStates.RUNNING -> {
+                System.currentTimeMillis() - startTimestampMs.value
+            }
+            StopwatchStates.PAUSED -> {
+                pauseTimestampMs.value - startTimestampMs.value
+            }
+            StopwatchStates.RESET -> {
+                0
+            }
         }
-        StopwatchStates.PAUSED -> {
-            pauseTimestampMs.value - startTimestampMs.value
-        }
-        StopwatchStates.RESET -> {
-            0
-        }
-    })
+    )
 
     val elapsedTimeMs: StateFlow<Long> = _elapsedTimeMs.asStateFlow()
 
@@ -132,5 +136,6 @@ class StateViewModel @Inject constructor(@Named("dataStoreManager") private val 
             dataStoreManager?.save("startTimestampMs", this@StateViewModel.startTimestampMs.value)
         }
     }
+
 
 }

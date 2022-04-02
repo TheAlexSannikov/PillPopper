@@ -1,4 +1,4 @@
-package sannikov.a.stonerstopwatch
+package sannikov.a.stonerstopwatch.di
 
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -12,14 +12,8 @@ import android.content.Context
 //import dagger.hilt.android.components.ActivityComponent
 //import dagger.hilt.android.components.ApplicationComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.android.scopes.ActivityScoped
-
-//import dagger.Module
-//import dagger.Provides
-//import dagger.hilt.InstallIn
-//import dagger.hilt.android.qualifiers.ApplicationContext
-//import dagger.hilt.components.SingletonComponent
-//import javax.inject.Singleton
+import sannikov.a.stonerstopwatch.data.DataStoreManager
+import sannikov.a.stonerstopwatch.viewmodels.StateViewModel
 
 @Module
 @InstallIn(SingletonComponent::class) // Installs FooModule in the generate SingletonComponent.
