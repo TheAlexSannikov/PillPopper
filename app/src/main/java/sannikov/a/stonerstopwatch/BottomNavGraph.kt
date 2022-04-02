@@ -4,11 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import sannikov.a.stonerstopwatch.pilltimer.PillTimerScreen
+import sannikov.a.stonerstopwatch.views.StopwatchScreen
 
 @Composable
 fun BottomNavGraph(
     navController: NavHostController,
-    stateViewModel: StateViewModel,
 ) {
 
     NavHost(
@@ -16,10 +17,10 @@ fun BottomNavGraph(
         startDestination = BottomBarScreen.Stopwatch.route
     ) {
         composable(route = BottomBarScreen.Stopwatch.route) {
-            StopwatchScreen(stateViewModel = stateViewModel)
+            StopwatchScreen()
         }
-        composable(route = BottomBarScreen.Profile.route) {
-            ProfileScreen("placeholder")
+        composable(route = BottomBarScreen.PillTimer.route) {
+            PillTimerScreen()
         }
         composable(route = BottomBarScreen.Settings.route) {
             SettingsScreen("placeholder")
