@@ -10,7 +10,7 @@
         android:name=".MyApplication"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.StonerStopwatch">
+        android:theme="@style/Theme.StonerStopwatch.NoActionBar">
 
         <activity
             android:name=".MainActivity"

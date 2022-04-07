@@ -7,6 +7,4 @@ import androidx.room.RoomDatabase
 @Database(entities = [Pill::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun pillDao(): PillDao
-
-
 }

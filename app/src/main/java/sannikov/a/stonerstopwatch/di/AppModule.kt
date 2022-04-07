@@ -6,14 +6,15 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import javax.inject.Named
 import dagger.Provides
-
-
 import android.content.Context
-//import dagger.hilt.android.components.ActivityComponent
-//import dagger.hilt.android.components.ApplicationComponent
+import androidx.room.Room
 import dagger.hilt.android.qualifiers.ApplicationContext
+import sannikov.a.stonerstopwatch.data.AppDatabase
 import sannikov.a.stonerstopwatch.data.DataStoreManager
-import sannikov.a.stonerstopwatch.viewmodels.StateViewModel
+import sannikov.a.stonerstopwatch.data.PillDao
+import sannikov.a.stonerstopwatch.data.PillRepository
+import sannikov.a.stonerstopwatch.viewmodels.PillViewModel
+import sannikov.a.stonerstopwatch.viewmodels.StopwatchViewModel
 
 @Module
 @InstallIn(SingletonComponent::class) // Installs FooModule in the generate SingletonComponent.
@@ -27,13 +28,30 @@ internal object AppModule {
     @Singleton
     @Provides
     @Named("dataStoreManager")
-    fun provideDataStoreManager(@ApplicationContext context: Context): DataStoreManager = DataStoreManager(context)
+    fun provideDataStoreManager(@ApplicationContext appContext: Context): DataStoreManager =
+        DataStoreManager(appContext)
 
     @Singleton
     @Provides
 //    @Named("stateViewModel")
-    fun provideStateViewModel(@Named("dataStoreManager") dataStoreManager : DataStoreManager): StateViewModel = StateViewModel(dataStoreManager)
+    fun provideStopwatchViewModel(@Named("dataStoreManager") dataStoreManager: DataStoreManager): StopwatchViewModel =
+        StopwatchViewModel(dataStoreManager)
 
+    @Singleton
+    @Provides
+    fun providePillPopperViewModel(pillRepository: PillRepository): PillViewModel =
+        PillViewModel(pillRepository)
+
+    @Singleton
+    @Provides
+    fun providePillDao(appDatabase: AppDatabase): PillDao {
+        return appDatabase.pillDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideAppDatabase(@ApplicationContext appContext: Context): AppDatabase =
+        Room.databaseBuilder(appContext, AppDatabase::class.java, "stoner-stopwatch-db").build()
 
     /*
      dataStoreManager = DataStoreManager.getInstance(this@MainActivity)

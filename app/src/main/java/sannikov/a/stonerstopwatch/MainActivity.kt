@@ -13,8 +13,9 @@ import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import sannikov.a.stonerstopwatch.data.AppDatabase
 import sannikov.a.stonerstopwatch.data.DataStoreManager
-import sannikov.a.stonerstopwatch.viewmodels.StateViewModel
+import sannikov.a.stonerstopwatch.viewmodels.StopwatchViewModel
 import sannikov.a.stonerstopwatch.viewmodels.StopwatchStates
 
 import javax.inject.Inject
@@ -24,14 +25,10 @@ class MainActivity : AppCompatActivity() {
     private val tag = "MainActivity"
 
     @Inject
-//    @Named("dataStoreManager")
     lateinit var dataStoreManager: DataStoreManager
-
-//    @Inject
-////    @Named("stateViewModel") // I guess this annotation causes issues when using hiltViewModel() within a composable?
-//    lateinit var stateViewModel: StateViewModel
-    private val stateViewModel: StateViewModel by viewModels()
-
+    private val stopwatchViewModel: StopwatchViewModel by viewModels()
+    @Inject
+    lateinit var appDatabase: AppDatabase
     private val timeBetweenTicksMs = 10L
 
 
@@ -54,16 +51,16 @@ class MainActivity : AppCompatActivity() {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (true) {
                     // block when the stopwatch is not RUNNING
-                    if (stateViewModel.stopwatchState.value != StopwatchStates.RUNNING) {
-                        Log.d(tag, "startClock, sleeping on stopwatchState. stateViewModel: $stateViewModel")
-                        stateViewModel.stopwatchState.first { newState -> newState == StopwatchStates.RUNNING }
+                    if (stopwatchViewModel.stopwatchState.value != StopwatchStates.RUNNING) {
+                        Log.d(tag, "startClock, sleeping on stopwatchState. stateViewModel: $stopwatchViewModel")
+                        stopwatchViewModel.stopwatchState.first { newState -> newState == StopwatchStates.RUNNING }
                     }
                     delay(timeBetweenTicksMs)
                     if (delayCount % 500 == 0) {
                         Log.d(tag, "startTicks, delayCount: $delayCount")
                     }
                     delayCount++
-                    stateViewModel.onClockChange(newClock = System.currentTimeMillis(), print = false)
+                    stopwatchViewModel.onClockChange(newClock = System.currentTimeMillis(), print = false)
                 }
             }
         }
@@ -71,7 +68,7 @@ class MainActivity : AppCompatActivity() {
 
     public override fun onStop() {
         super.onStop()
-        stateViewModel.saveState()
+        stopwatchViewModel.saveState()
     }
 }
 

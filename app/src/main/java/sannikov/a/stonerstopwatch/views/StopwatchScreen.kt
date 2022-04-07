@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import sannikov.a.stonerstopwatch.R
 import sannikov.a.stonerstopwatch.TimeFormat
-import sannikov.a.stonerstopwatch.viewmodels.StateViewModel
+import sannikov.a.stonerstopwatch.viewmodels.StopwatchViewModel
 import sannikov.a.stonerstopwatch.viewmodels.StopwatchStates
 import kotlin.math.PI
 import kotlin.math.cos
@@ -39,14 +39,14 @@ lateinit var happyEarth: Bitmap
 
 @Preview
 @Composable
-fun StopwatchScreenStub(stateViewModel : StateViewModel = hiltViewModel()) {
+fun StopwatchScreenStub(stopwatchViewModel : StopwatchViewModel = hiltViewModel()) {
 //    @Named("stateViewModel")
 //    lateinit var stateViewModel: StateViewModel
 
-    val stopwatchState by stateViewModel.stopwatchState.collectAsState()
+    val stopwatchState by stopwatchViewModel.stopwatchState.collectAsState()
     happyEarth =
         BitmapFactory.decodeResource(LocalContext.current.resources, R.drawable.happy_earth_no_bg)
-    val elapsedTimeMs by stateViewModel.elapsedTimeMs.collectAsState()
+    val elapsedTimeMs by stopwatchViewModel.elapsedTimeMs.collectAsState()
 
     StopwatchContent(
         elapsedTimeMs = elapsedTimeMs,
@@ -56,12 +56,12 @@ fun StopwatchScreenStub(stateViewModel : StateViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun StopwatchScreen(stateViewModel : StateViewModel = hiltViewModel()) {
+fun StopwatchScreen(stopwatchViewModel : StopwatchViewModel = hiltViewModel()) {
 
-    val stopwatchState by stateViewModel.stopwatchState.collectAsState()
+    val stopwatchState by stopwatchViewModel.stopwatchState.collectAsState()
     happyEarth =
         BitmapFactory.decodeResource(LocalContext.current.resources, R.drawable.happy_earth_no_bg)
-    val elapsedTimeMs by stateViewModel.elapsedTimeMs.collectAsState()
+    val elapsedTimeMs by stopwatchViewModel.elapsedTimeMs.collectAsState()
 
     StopwatchContent(
         elapsedTimeMs = elapsedTimeMs,
@@ -77,7 +77,7 @@ fun StopwatchContent(
     stopwatchState: StopwatchStates,
     modifier: Modifier = Modifier,
 ) {
-    val stateViewModel = hiltViewModel<StateViewModel>()
+    val stateViewModel = hiltViewModel<StopwatchViewModel>()
 
 //    val displayTime by stateViewModel.displayTime.collectAsState()
     // background of app
@@ -131,7 +131,7 @@ fun StopwatchContent(
                     onClick = {
                         stopwatchButtonOnClick(
                             buttonName = "start",
-                            stateViewModel = stateViewModel,
+                            stopwatchViewModel = stateViewModel,
                         )
                     },
                     // can have different colors depending on app state
@@ -159,7 +159,7 @@ fun StopwatchContent(
                     onClick = {
                         stopwatchButtonOnClick(
                             buttonName = "reset",
-                            stateViewModel = stateViewModel,
+                            stopwatchViewModel = stateViewModel,
                         )
                     },
                     // can have different colors depending on app state
@@ -237,9 +237,9 @@ fun DrawProgressionArc(elapsedTimeMs: Long, periodMs: Long) {
 
 fun stopwatchButtonOnClick(
     buttonName: String,
-    stateViewModel: StateViewModel, // TODO: Hilt for DI?
+    stopwatchViewModel: StopwatchViewModel, // TODO: Hilt for DI?
 ) {
-    val oldState = stateViewModel.stopwatchState.value
+    val oldState = stopwatchViewModel.stopwatchState.value
     lateinit var newState: StopwatchStates
 
     when (buttonName) {
@@ -257,7 +257,7 @@ fun stopwatchButtonOnClick(
     }
     Log.d(TAG_STOPWATCH_SCREEN, "$buttonName was clicked, oldState: $oldState, newState: $newState")
 
-    stateViewModel.onStopwatchStateChange(newState = newState)
+    stopwatchViewModel.onStopwatchStateChange(newState = newState)
 
     val currTime = System.currentTimeMillis()
 
@@ -265,23 +265,23 @@ fun stopwatchButtonOnClick(
         // TODO: handle these cases; save startTime
         StopwatchStates.RUNNING -> {
 
-            val pauseTimestampMs = stateViewModel.pauseTimestampMs.value
+            val pauseTimestampMs = stopwatchViewModel.pauseTimestampMs.value
             // account for time the timer was paused moving by startTime forward by that amount of time
             val lengthOfPause = currTime - pauseTimestampMs; // TODO: this will probably bug out..
 
             Log.d(TAG_STOPWATCH_SCREEN, "\tlengthOfPause was known to be $lengthOfPause")
-            Log.d(TAG_STOPWATCH_SCREEN, "buttonOnClick(); newStartTimestampMs = ${stateViewModel.startTimestampMs.value + lengthOfPause}")
-            stateViewModel.onStartTimestampMsChange(newStartTimestampMs = stateViewModel.startTimestampMs.value + lengthOfPause)
+            Log.d(TAG_STOPWATCH_SCREEN, "buttonOnClick(); newStartTimestampMs = ${stopwatchViewModel.startTimestampMs.value + lengthOfPause}")
+            stopwatchViewModel.onStartTimestampMsChange(newStartTimestampMs = stopwatchViewModel.startTimestampMs.value + lengthOfPause)
         }
         StopwatchStates.PAUSED -> {
             Log.d(TAG_STOPWATCH_SCREEN, "buttonOnClick(); newPauseTimestampMs = $currTime")
-            stateViewModel.onPauseTimestampMsChange(newPauseTimestampMs = currTime)
+            stopwatchViewModel.onPauseTimestampMsChange(newPauseTimestampMs = currTime)
         }
         StopwatchStates.RESET -> {
             Log.d(TAG_STOPWATCH_SCREEN, "buttonOnClick(); newStartTimestampMs = $currTime, newPauseTimestampMs = $currTime, newClock = $currTime")
-            stateViewModel.onStartTimestampMsChange(newStartTimestampMs = currTime)
-            stateViewModel.onPauseTimestampMsChange(newPauseTimestampMs = currTime)
-            stateViewModel.onClockChange(newClock = currTime, print = true)
+            stopwatchViewModel.onStartTimestampMsChange(newStartTimestampMs = currTime)
+            stopwatchViewModel.onPauseTimestampMsChange(newPauseTimestampMs = currTime)
+            stopwatchViewModel.onClockChange(newClock = currTime, print = true)
         }
     }
 }

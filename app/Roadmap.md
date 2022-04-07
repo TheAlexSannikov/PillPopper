@@ -20,7 +20,7 @@
 
 # MutableLiveData / Persistence
 	MainActivity
-		StateViewModel 			(MutableLiveData (depricated) / MutableStateFlow)
+		StopwatchViewModel 			(MutableLiveData (depricated) / MutableStateFlow)
 			dataStoreManager 	(DataStore) TODO: DataLayer?
 
 # Future plans: PillPopper in "Hi Mom!" tab
@@ -35,3 +35,5 @@
     Ability to undo taking a pill
 
     ?? Create seperate ViewManagers for each tab ??
+
+    Add a splashscreen!

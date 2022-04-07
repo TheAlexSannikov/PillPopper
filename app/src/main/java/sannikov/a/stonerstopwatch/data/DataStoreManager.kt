@@ -90,6 +90,7 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         val readValue = flow.first()
         when (key) {
             STOPWATCH_STATE -> {
+                // TODO: Handle first time use better... On new device, readValue is null
                 return StopwatchStates.values()[readValue as Int]
             }
 

@@ -24,7 +24,7 @@ enum class StopwatchStates {
 
 //class StateViewModel(dataStoreManager: DataStoreManager? = null) : ViewModel() {
 @HiltViewModel
-class StateViewModel @Inject constructor(@Named("dataStoreManager") private val dataStoreManager: DataStoreManager) :
+class StopwatchViewModel @Inject constructor(@Named("dataStoreManager") private val dataStoreManager: DataStoreManager) :
     ViewModel() {
     private val tag = "StateViewModel"
 
@@ -111,16 +111,14 @@ class StateViewModel @Inject constructor(@Named("dataStoreManager") private val 
             val newState = dataStoreManager.read("stopwatchState")
             val newpauseTimestampMs = dataStoreManager.read("pauseTimestampMs")
             val newstartTimestampMs = dataStoreManager.read("startTimestampMs")
+            newState?.let { onStopwatchStateChange(newState as StopwatchStates) }
+            newpauseTimestampMs?.let { onPauseTimestampMsChange(newpauseTimestampMs as Long) }
+            newstartTimestampMs?.let { onStartTimestampMsChange(newstartTimestampMs as Long) }
 
             Log.d(
                 tag,
                 "init, state: $newState, pauseTimestampMs: $newpauseTimestampMs, startTimestampMs: $newstartTimestampMs"
             )
-
-            newState?.let { onStopwatchStateChange(newState as StopwatchStates) }
-            newpauseTimestampMs?.let { onPauseTimestampMsChange(newpauseTimestampMs as Long) }
-            newstartTimestampMs?.let { onStartTimestampMsChange(newstartTimestampMs as Long) }
-
         }
     }
 
@@ -130,10 +128,10 @@ class StateViewModel @Inject constructor(@Named("dataStoreManager") private val 
         GlobalScope.launch(Dispatchers.IO) {
             dataStoreManager?.save(
                 "stopwatchState",
-                this@StateViewModel.stopwatchState.value.ordinal
+                this@StopwatchViewModel.stopwatchState.value.ordinal
             )
-            dataStoreManager?.save("pauseTimestampMs", this@StateViewModel.pauseTimestampMs.value)
-            dataStoreManager?.save("startTimestampMs", this@StateViewModel.startTimestampMs.value)
+            dataStoreManager?.save("pauseTimestampMs", this@StopwatchViewModel.pauseTimestampMs.value)
+            dataStoreManager?.save("startTimestampMs", this@StopwatchViewModel.startTimestampMs.value)
         }
     }
 
