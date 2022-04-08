@@ -12,7 +12,6 @@
 			AppTypography
 
 # Navigation
-
 	MainActivity:onCreate
 		MainScreenBottomNav
 			BottomNavGraph
@@ -23,17 +22,15 @@
 		StopwatchViewModel 			(MutableLiveData (depricated) / MutableStateFlow)
 			dataStoreManager 	(DataStore) TODO: DataLayer?
 
-# Future plans: PillPopper in "Hi Mom!" tab
-    Sealed class for drugs:
-        {name, periodHrs, maxDosageMgPerPeriod, maxDosageMgPerDay}
-    pills:
-        {drug, dosageMg, timeTakenMsEpoch}
+# PillPopper in "Hi Mom!" tab
+    enum class for drugs
+    data class for pills    [Room entity]
 
-    Room (and later DataStoreManager) behind a repository
-        pill  |    time taken
+    PillTimerScreen
+        pillViewModel       
+            pillRepository  
+                pillDao     [Room]
 
-    Ability to undo taking a pill
 
-    ?? Create seperate ViewManagers for each tab ??
-
+# TODO:
     Add a splashscreen!

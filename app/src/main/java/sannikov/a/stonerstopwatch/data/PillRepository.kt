@@ -6,8 +6,8 @@ import javax.inject.Singleton
 
 @Singleton
 class PillRepository @Inject constructor(
-    private val pillDao : PillDao
-){
+    private val pillDao: PillDao
+) {
     suspend fun loadAll(): Flow<List<Pill>> {
         return pillDao.loadAll()
     }
@@ -16,11 +16,22 @@ class PillRepository @Inject constructor(
         return pillDao.loadAllByDrug(qDrug = drug)
     }
 
-    suspend fun popPill(pill : Pill) {
+    /**
+     * pop as in ingesting it
+     */
+    suspend fun popPill(pill: Pill) {
         pillDao.popPill(pill)
     }
 
-    fun deleteAllPills() {
+    suspend fun getMostRecentPill(): Pill {
+        return pillDao.getMostRecentPill()
+    }
+
+    suspend fun deletePill(pill: Pill) {
+        pillDao.deletePill(pill)
+    }
+
+    suspend fun deleteAllPills() {
         pillDao.deleteAllPills()
     }
 }

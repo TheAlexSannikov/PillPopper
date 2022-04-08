@@ -1,6 +1,7 @@
 package sannikov.a.stonerstopwatch.data
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
@@ -16,6 +17,14 @@ interface PillDao {
     @Insert
     suspend fun popPill(pill : Pill)
 
+    @Query("SELECT * FROM pill ORDER BY timeTakenMsEpoch DESC LIMIT 1")
+    suspend fun getMostRecentPill() : Pill
+
+    @Delete
+    suspend fun deletePill(pill: Pill)
+
     @Query("DELETE FROM pill")
-    fun deleteAllPills()
+    suspend fun deleteAllPills()
+
+
 }

@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity() {
                         stopwatchViewModel.stopwatchState.first { newState -> newState == StopwatchStates.RUNNING }
                     }
                     delay(timeBetweenTicksMs)
-                    if (delayCount % 500 == 0) {
+                    if (delayCount % 5000 == 0) {
                         Log.d(tag, "startTicks, delayCount: $delayCount")
                     }
                     delayCount++
