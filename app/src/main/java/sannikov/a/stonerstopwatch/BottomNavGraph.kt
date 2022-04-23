@@ -10,6 +10,7 @@ import sannikov.a.stonerstopwatch.views.StopwatchScreen
 @Composable
 fun BottomNavGraph(
     navController: NavHostController,
+    onPillPop: (pillName: String) -> Unit
 ) {
 
     NavHost(
@@ -20,7 +21,7 @@ fun BottomNavGraph(
             StopwatchScreen()
         }
         composable(route = BottomBarScreen.PillTimer.route) {
-            PillTimerScreen()
+            PillTimerScreen(onPillPop = onPillPop)
         }
         composable(route = BottomBarScreen.Settings.route) {
             SettingsScreen("placeholder")

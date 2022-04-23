@@ -7,22 +7,37 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 
 @Composable
 fun MainScreenBottomNav() {
     val darkTheme: Boolean = isSystemInDarkTheme()
-    MaterialTheme(colors = if(darkTheme) darkColors() else lightColors()) {
+    MaterialTheme(colors = if (darkTheme) darkColors() else lightColors()) {
         val navController = rememberNavController()
+        val scaffoldState = rememberScaffoldState()
+
+        // Create a coroutine scope. Opening of Drawer and snackbar should happen in background thread without blocking main thread
+        val coroutineScope = rememberCoroutineScope()
+
         Scaffold(
-            bottomBar = { BottomBar(navController = navController) }
+            bottomBar = { BottomBar(navController = navController) },
+            scaffoldState = scaffoldState,
         ) {
             BottomNavGraph(
                 navController = navController,
+                onPillPop = { pillName: String ->
+                    coroutineScope.launch {
+                        scaffoldState.snackbarHostState.showSnackbar(
+                            message = pillName
+                        )
+                    }
+                }
             )
         }
     }

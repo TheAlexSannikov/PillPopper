@@ -39,8 +39,8 @@ internal object AppModule {
 
     @Singleton
     @Provides
-    fun providePillPopperViewModel(pillRepository: PillRepository): PillViewModel =
-        PillViewModel(pillRepository)
+    fun providePillPopperViewModel(@ApplicationContext appContext: Context, pillRepository: PillRepository): PillViewModel =
+        PillViewModel(pillRepository, appContext)
 
     @Singleton
     @Provides

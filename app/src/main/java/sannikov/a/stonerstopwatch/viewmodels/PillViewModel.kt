@@ -1,18 +1,22 @@
 package sannikov.a.stonerstopwatch.viewmodels
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import sannikov.a.stonerstopwatch.data.Drug
 import sannikov.a.stonerstopwatch.data.Pill
 import sannikov.a.stonerstopwatch.data.PillRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class PillViewModel @Inject constructor(
-    private val pillRepository: PillRepository
+    private val pillRepository: PillRepository,
+    @ApplicationContext val appContext: Context
 ) : ViewModel() {
 
     private val TAG = "PillViewModel"
@@ -23,8 +27,15 @@ class PillViewModel @Inject constructor(
         pillDao -> pillRepository -> pillRepository.loadAll().collect -> onAllPoppedPillsChange -> updates _allPoppedPills -> triggers allPoppedPills to emit.
      */
     // handles taking a single pill
-    fun onPopPill(pill: Pill) {
+    fun onPopPill() {
+        val pill = Pill(
+            drug = selectedDrug.value,
+            dosageMg = 500,
+            timeTakenMsEpoch = System.currentTimeMillis()
+        )
+
         Log.d(TAG, "popping pill $pill")
+        onCanUndoPillChange(false)
         viewModelScope.launch {
             pillRepository.popPill(pill)
             onCanUndoPillChange(true)
@@ -32,7 +43,8 @@ class PillViewModel @Inject constructor(
     }
 
     fun deleteAllPills() {
-        Log.d(TAG, "deleting all pills!")
+        Log.d(TAG, "deleting all pills! appContext: $appContext")
+        onCanUndoPillChange(false)
         viewModelScope.launch {
             pillRepository.deleteAllPills()
         }
@@ -45,31 +57,43 @@ class PillViewModel @Inject constructor(
     val canUndoPill = _canUndoPill.asStateFlow()
 
     private fun onCanUndoPillChange(value: Boolean) {
+        Log.d(TAG, "onCanUndoPillChange, value: $value")
         _canUndoPill.value = value
     }
 
     fun onUndoPill() {
         if (!canUndoPill.value) {
-            Log.d(TAG, "onUndoPill is called with canUndoPill: $canUndoPill. Returning")
+            Log.d(TAG, "onUndoPill is called with canUndoPill: ${canUndoPill.value} Returning")
             return
         }
         viewModelScope.launch {
-            val previousPill = pillRepository.getMostRecentPill() as Pill
+            val previousPill = pillRepository.getMostRecentPill()
             Log.d(
                 TAG,
-                "onUndoPill is called with canUndoPill: $canUndoPill; updated previousPill to $previousPill"
+                "onUndoPill is called with canUndoPill: ${canUndoPill.value}; updated previousPill to $previousPill"
             )
             pillRepository.deletePill(previousPill)
         }
         onCanUndoPillChange(false)
     }
-//
-//    val _undoable: Flow<Boolean> = undoAction.map {
-//        Log.d(TAG, "undoAction $it was captured. undoable is now: ${ it != null}")
-//        it != null
-//    }
-//    val _undoable: StateFlow<Boolean> = MutableStateFlow(false)
 
+    // the drug the user is about to pop
+    private val _selectedDrug = MutableStateFlow(Drug.ACETAMINOPHEN)
+    val selectedDrug: StateFlow<Drug> = _selectedDrug.asStateFlow()
+
+    fun onDrugSelectRight() {
+        val selectedDrugOrdinal = selectedDrug.value.ordinal
+        Log.d(TAG, "onDrugSelectRight, selectedDrugOrdinal: $selectedDrugOrdinal")
+        if (selectedDrugOrdinal == Drug.values().size - 1) return
+        _selectedDrug.value = Drug.values()[selectedDrugOrdinal + 1]
+    }
+
+    fun onDrugSelectLeft() {
+        val selectedDrugOrdinal = selectedDrug.value.ordinal
+        Log.d(TAG, "onDrugSelectLeft, selectedDrugOrdinal: $selectedDrugOrdinal")
+        if (selectedDrugOrdinal == 0) return
+        _selectedDrug.value = Drug.values()[selectedDrugOrdinal - 1]
+    }
 
     private val _allPoppedPills = MutableStateFlow<List<Pill>>(emptyList())
     val allPoppedPills: StateFlow<List<Pill>> = _allPoppedPills.asStateFlow()

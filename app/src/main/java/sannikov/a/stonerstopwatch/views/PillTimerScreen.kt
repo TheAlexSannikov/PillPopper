@@ -6,26 +6,27 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import sannikov.a.stonerstopwatch.R
-import sannikov.a.stonerstopwatch.data.Drug
 import sannikov.a.stonerstopwatch.data.Pill
 import sannikov.a.stonerstopwatch.viewmodels.PillViewModel
 import sannikov.a.stonerstopwatch.views.happyEarth
-import sannikov.a.stonerstopwatch.views.happyEarthSize
 
 const val ACETAMINOPHEN_PERIOD = 21600L // 21600000L 6 hours
 const val TAG_PILL_TIMER_SCREEN = "PillTimerScreen"
 
 @Composable
-fun PillTimerScreen(pillViewModel: PillViewModel = hiltViewModel()) {
+fun PillTimerScreen(
+    pillViewModel: PillViewModel = hiltViewModel(),
+    onPillPop: (pillName: String) -> Unit
+) {
 
     val allPoppedPills by pillViewModel.allPoppedPills.collectAsState()
     val selectedDrug by pillViewModel.selectedDrug.collectAsState()
@@ -35,9 +36,10 @@ fun PillTimerScreen(pillViewModel: PillViewModel = hiltViewModel()) {
 
     PillTimerContent(
         pillViewModel = pillViewModel,
-        numPillsPopped = allPoppedPills.size,
+        allPoppedPills = allPoppedPills,
         selectedPillName = selectedDrug.drugName,
         modifier = Modifier.aspectRatio(1F),
+        onPillPop = onPillPop,
     )
 }
 
@@ -45,10 +47,12 @@ fun PillTimerScreen(pillViewModel: PillViewModel = hiltViewModel()) {
 @Composable
 fun PillTimerContent(
     pillViewModel: PillViewModel,
-    numPillsPopped: Int,
+    allPoppedPills: List<Pill>,
     selectedPillName: String,
     modifier: Modifier = Modifier,
+    onPillPop: (pillName: String) -> Unit,
 ) {
+    val messages = ArrayList<String>()
 
     Surface(
         modifier = Modifier
@@ -78,6 +82,7 @@ fun PillTimerContent(
                         pillTimerButtonOnClick(
                             buttonName = "left",
                             pillViewModel = pillViewModel,
+                            showSnackbarText = onPillPop,
                         )
                     },
                     // can have different colors depending on app state
@@ -98,6 +103,7 @@ fun PillTimerContent(
                         pillTimerButtonOnClick(
                             buttonName = "pop",
                             pillViewModel = pillViewModel,
+                            showSnackbarText = onPillPop,
                         )
                     },
                     // can have different colors depending on app state
@@ -117,6 +123,7 @@ fun PillTimerContent(
                         pillTimerButtonOnClick(
                             buttonName = "right",
                             pillViewModel = pillViewModel,
+                            showSnackbarText = onPillPop,
                         )
                     },
                     // can have different colors depending on app state
@@ -130,26 +137,19 @@ fun PillTimerContent(
                         color = MaterialTheme.colors.onSecondary
                     )
                 }
-            }
 
-            Row(
-                horizontalArrangement = Arrangement.SpaceAround,
-                modifier = modifier
-//                    .wrapContentHeight()
-                    .background(Color.Red)
-            ) {
                 // undo
                 Button(
                     onClick = {
                         pillTimerButtonOnClick(
                             buttonName = "undo",
                             pillViewModel = pillViewModel,
+                            showSnackbarText = onPillPop,
                         )
                     },
                     // can have different colors depending on app state
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = MaterialTheme.colors.error
-
                     )
                 ) {
                     Text(
@@ -164,7 +164,9 @@ fun PillTimerContent(
                         pillTimerButtonOnClick(
                             buttonName = "purge",
                             pillViewModel = pillViewModel,
+                            showSnackbarText = onPillPop,
                         )
+                        messages.add("undo?")
                     },
                     // can have different colors depending on app state
                     colors = ButtonDefaults.buttonColors(
@@ -178,35 +180,32 @@ fun PillTimerContent(
                     )
                 }
             }
-            // text
-            Row(
-                horizontalArrangement = Arrangement.SpaceAround,
-                modifier = modifier
-                    .requiredHeight(30.dp)
-//                    .wrapContentHeight()
-            ) {
-                Text(
-                    style = MaterialTheme.typography.body1,
-                    text = "$numPillsPopped pills were popped!\n\n${pillViewModel.allPoppedPills.collectAsState()}",
-                    color = MaterialTheme.colors.onBackground,
-                )
-            }
+
+            Text(
+                style = MaterialTheme.typography.body1,
+                text = "${allPoppedPills.size} pills were popped!${allPoppedPills}",
+                color = MaterialTheme.colors.onBackground,
+            )
+
         }
     }
 }
 
 fun pillTimerButtonOnClick(
     buttonName: String,
-    pillViewModel: PillViewModel, // TODO: Hilt for DI?
+    pillViewModel: PillViewModel,
+    showSnackbarText: (pillName: String) -> Unit, // TODO: Hilt for DI?
 ) {
 
     when (buttonName) {
         "pop" -> {
+            val pillName = pillViewModel.selectedDrug.value.drugName
             Log.d(
                 TAG_PILL_TIMER_SCREEN,
-                "$buttonName was clicked. Popping ${pillViewModel.selectedDrug.value.drugName}!"
+                "$buttonName was clicked. Popping $pillName!"
             )
             pillViewModel.onPopPill()
+            showSnackbarText(pillName)
         }
         "purge" -> {
             Log.d(TAG_PILL_TIMER_SCREEN, "$buttonName was clicked. Wiping all pills from records!")
@@ -228,5 +227,4 @@ fun pillTimerButtonOnClick(
             pillViewModel.onDrugSelectRight()
         }
     }
-
 }
