@@ -6,9 +6,9 @@ import androidx.room.*
 /**
  * Stores information for an individual pill taken by the user. Storable in Room
  */
-@Entity
+@Entity(tableName = "Pill")
 data class Pill(
-    @NonNull @ColumnInfo val drug: Drug,
-    @NonNull @ColumnInfo val dosageMg: Int,
+    @NonNull @ColumnInfo(name = "drug") val drug: Drug,
+    @NonNull @ColumnInfo(name = "dosageMg") val dosageMg: Int,
     @NonNull @PrimaryKey val timeTakenMsEpoch: Long
 )

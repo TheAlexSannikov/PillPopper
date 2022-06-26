@@ -26,5 +26,6 @@ interface PillDao {
     @Query("DELETE FROM pill")
     suspend fun deleteAllPills()
 
-
+    @Query("SELECT SUM(dosageMg) FROM Pill WHERE drug = :qDrug")
+    suspend fun getAmountConsumedMg(qDrug: Drug): Int
 }

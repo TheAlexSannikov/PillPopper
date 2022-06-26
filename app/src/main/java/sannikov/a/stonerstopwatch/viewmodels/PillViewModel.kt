@@ -2,6 +2,8 @@ package sannikov.a.stonerstopwatch.viewmodels
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.material.ScaffoldState
+import androidx.compose.material.SnackbarDuration
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,9 +29,11 @@ class PillViewModel @Inject constructor(
         pillDao -> pillRepository -> pillRepository.loadAll().collect -> onAllPoppedPillsChange -> updates _allPoppedPills -> triggers allPoppedPills to emit.
      */
     // handles taking a single pill
-    fun onPopPill() {
+    fun onPopPill(scaffoldState: ScaffoldState) {
+
+        val drug = selectedDrug.value
         val pill = Pill(
-            drug = selectedDrug.value,
+            drug = drug,
             dosageMg = 500,
             timeTakenMsEpoch = System.currentTimeMillis()
         )
@@ -39,6 +43,9 @@ class PillViewModel @Inject constructor(
         viewModelScope.launch {
             pillRepository.popPill(pill)
             onCanUndoPillChange(true)
+            val amountConsumed = getAmountConsumedMg(drug)
+            // TODO: Make snackbar useful - its too spammy
+            scaffoldState.snackbarHostState.showSnackbar("popped ${amountConsumed}mg of ${drug.name}", duration = SnackbarDuration.Short)
         }
     }
 
@@ -85,18 +92,49 @@ class PillViewModel @Inject constructor(
         val selectedDrugOrdinal = selectedDrug.value.ordinal
         Log.d(TAG, "onDrugSelectRight, selectedDrugOrdinal: $selectedDrugOrdinal")
         if (selectedDrugOrdinal == Drug.values().size - 1) return
-        _selectedDrug.value = Drug.values()[selectedDrugOrdinal + 1]
+        onSelectedDrugChange(Drug.values()[selectedDrugOrdinal + 1])
     }
 
     fun onDrugSelectLeft() {
         val selectedDrugOrdinal = selectedDrug.value.ordinal
         Log.d(TAG, "onDrugSelectLeft, selectedDrugOrdinal: $selectedDrugOrdinal")
         if (selectedDrugOrdinal == 0) return
-        _selectedDrug.value = Drug.values()[selectedDrugOrdinal - 1]
+        onSelectedDrugChange(Drug.values()[selectedDrugOrdinal - 1])
     }
 
+
+    // TODO: Refactor idea - Have a semaphore block until selected drug is changed, then update the flow
+    // updates the selected drug.
+    private fun onSelectedDrugChange(drug: Drug) {
+        _selectedDrug.value = drug
+        updateSelectedDrugTakenMg()
+    }
+
+
+    // to be called when a pill is popped, and when a different drug is selected
+    private fun updateSelectedDrugTakenMg() {
+        val newSelectedPoppedPills =
+            allPoppedPills.value.filter { pill -> pill.drug == selectedDrug.value }
+        _selectedDrugTakenMg.value = newSelectedPoppedPills.sumOf { it.dosageMg }
+
+        Log.d(TAG, "updateSelectedDrugTakenMg(): selectedDrugTakenMG: $selectedDrugTakenMg\n\tnewSelectedPoppedPills: $newSelectedPoppedPills")
+        _selectedPoppedPills.value = newSelectedPoppedPills
+
+    }
+    
     private val _allPoppedPills = MutableStateFlow<List<Pill>>(emptyList())
     val allPoppedPills: StateFlow<List<Pill>> = _allPoppedPills.asStateFlow()
+
+    private val _selectedPoppedPills = MutableStateFlow<List<Pill>>(emptyList())
+    val selectedPoppedPills: StateFlow<List<Pill>> = _selectedPoppedPills.asStateFlow()
+
+    val _selectedDrugTakenMg = MutableStateFlow(0)
+    val selectedDrugTakenMg: StateFlow<Int> = _selectedDrugTakenMg.asStateFlow()
+
+    // returns the total amount of this drug (in mg) consumed
+    suspend fun getAmountConsumedMg(drug: Drug): Int {
+        return pillRepository.getAmountConsumedMg(drug)
+    }
 
     init {
         /**
@@ -106,7 +144,16 @@ class PillViewModel @Inject constructor(
         fun onAllPoppedPillsChange(allNewPills: List<Pill>) {
             Log.d(TAG, "onAllPoppedPillsChange: allNewPills: $allNewPills")
             _allPoppedPills.value = allNewPills
+            // filter based on selected drug
+//            // TODO: Move this logic elsewhere s.t. popping a pill AND changing selected drug will update this filter
+//            val newSelectedPoppedPills =
+//                allPoppedPills.value.filter { pill -> pill.drug == selectedDrug.value }
+//            _selectedDrugTakenMg.value = newSelectedPoppedPills.sumOf { it.dosageMg }
+//            _selectedPoppedPills.value = newSelectedPoppedPills
+            updateSelectedDrugTakenMg()
         }
+
+//        fun selectedDrug // TODO: What was I doing here?
 
         Log.d(TAG, "init!")
         viewModelScope.launch {

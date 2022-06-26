@@ -34,4 +34,8 @@ class PillRepository @Inject constructor(
     suspend fun deleteAllPills() {
         pillDao.deleteAllPills()
     }
+
+    suspend fun getAmountConsumedMg(drug: Drug): Int {
+        return pillDao.getAmountConsumedMg(qDrug = drug)
+    }
 }

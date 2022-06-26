@@ -1,7 +1,6 @@
 package sannikov.a.stonerstopwatch
 // https://youtu.be/gg-KBGH9T8s
 
-import android.content.Context
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.*
@@ -13,7 +12,6 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.launch
 
 @Composable
 fun MainScreenBottomNav() {
@@ -31,13 +29,7 @@ fun MainScreenBottomNav() {
         ) {
             BottomNavGraph(
                 navController = navController,
-                onPillPop = { pillName: String ->
-                    coroutineScope.launch {
-                        scaffoldState.snackbarHostState.showSnackbar(
-                            message = pillName
-                        )
-                    }
-                }
+                scaffoldState = scaffoldState,
             )
         }
     }

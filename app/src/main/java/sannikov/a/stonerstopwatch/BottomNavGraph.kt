@@ -1,5 +1,6 @@
 package sannikov.a.stonerstopwatch
 // https://youtu.be/gg-KBGH9T8s
+import androidx.compose.material.ScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -10,7 +11,7 @@ import sannikov.a.stonerstopwatch.views.StopwatchScreen
 @Composable
 fun BottomNavGraph(
     navController: NavHostController,
-    onPillPop: (pillName: String) -> Unit
+    scaffoldState: ScaffoldState
 ) {
 
     NavHost(
@@ -21,7 +22,7 @@ fun BottomNavGraph(
             StopwatchScreen()
         }
         composable(route = BottomBarScreen.PillTimer.route) {
-            PillTimerScreen(onPillPop = onPillPop)
+            PillTimerScreen(scaffoldState = scaffoldState)
         }
         composable(route = BottomBarScreen.Settings.route) {
             SettingsScreen("placeholder")
