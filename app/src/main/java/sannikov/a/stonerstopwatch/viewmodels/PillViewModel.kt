@@ -45,7 +45,7 @@ class PillViewModel @Inject constructor(
             onCanUndoPillChange(true)
             val amountConsumed = getAmountConsumedMg(drug)
             // TODO: Make snackbar useful - its too spammy
-            scaffoldState.snackbarHostState.showSnackbar("popped ${amountConsumed}mg of ${drug.name}", duration = SnackbarDuration.Short)
+//            scaffoldState.snackbarHostState.showSnackbar("popped ${amountConsumed}mg of ${drug.name}", duration = SnackbarDuration.Short)
         }
     }
 
@@ -117,11 +117,14 @@ class PillViewModel @Inject constructor(
             allPoppedPills.value.filter { pill -> pill.drug == selectedDrug.value }
         _selectedDrugTakenMg.value = newSelectedPoppedPills.sumOf { it.dosageMg }
 
-        Log.d(TAG, "updateSelectedDrugTakenMg(): selectedDrugTakenMG: $selectedDrugTakenMg\n\tnewSelectedPoppedPills: $newSelectedPoppedPills")
+        Log.d(
+            TAG,
+            "updateSelectedDrugTakenMg(): selectedDrugTakenMG: $selectedDrugTakenMg\n\tnewSelectedPoppedPills: $newSelectedPoppedPills"
+        )
         _selectedPoppedPills.value = newSelectedPoppedPills
 
     }
-    
+
     private val _allPoppedPills = MutableStateFlow<List<Pill>>(emptyList())
     val allPoppedPills: StateFlow<List<Pill>> = _allPoppedPills.asStateFlow()
 
