@@ -2,7 +2,6 @@ package sannikov.a.stonerstopwatch.pilltimer
 
 import android.graphics.BitmapFactory
 import android.util.Log
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
@@ -11,14 +10,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import sannikov.a.stonerstopwatch.R
@@ -29,7 +24,9 @@ import sannikov.a.stonerstopwatch.views.happyEarth
 
 const val ACETAMINOPHEN_PERIOD = 21600L // 21600000L 6 hours
 const val TAG_PILL_TIMER_SCREEN = "PillTimerScreen"
-val pillSize = 120.dp
+val PILL_SIZE = 120.dp
+val ARROW_SIZE = 90.dp
+val ICON_SIZE = 24.dp
 
 @Composable
 fun PillTimerScreen(
@@ -66,10 +63,6 @@ fun PillTimerContent(
     selectedPoppedPills: List<Pill>,
     selectedDrugTakenMg: Int,
 ) {
-//    LaunchedEffect(selectedPoppedPills, selectedPillName) {
-//        totalConsumedOfThisDrug = pillViewModel.selectedDrugTakenMg
-//    }
-
     Surface(
         modifier = Modifier
             .fillMaxSize(),
@@ -107,7 +100,7 @@ fun PillTimerContent(
                     .padding(horizontal = 10.dp)
             ) {
                 // choose drug to left
-                Button(
+                TextButton(
                     onClick = {
                         pillTimerButtonOnClick(
                             buttonName = "left",
@@ -116,13 +109,14 @@ fun PillTimerContent(
                     },
                     // can have different colors depending on app state
                     colors = ButtonDefaults.buttonColors(
-                        backgroundColor = MaterialTheme.colors.secondary
-
+                        backgroundColor = Color.Transparent
                     )
                 ) {
-                    Text(
-                        text = "left",
-                        color = MaterialTheme.colors.onSecondary
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_baseline_arrow_left_90),
+                        contentDescription = "Previous pill",
+                        tint = if (pillViewModel.isDrugToLeft()) MaterialTheme.colors.onBackground else Color.Gray
                     )
                 }
 
@@ -141,11 +135,15 @@ fun PillTimerContent(
                         backgroundColor = MaterialTheme.colors.primary
                     )
                 ) {
-                    paintXML(id = R.drawable.ic_pill_two_colors, size = 120.dp)
+                    Icon(
+                        painter = painterResource(id = selectedDrug.imageId),
+                        contentDescription = "Pop ${selectedDrug.drugName}",
+                        tint = Color.Unspecified
+                    )
                 }
 
                 // choose drug to right
-                Button(
+                TextButton(
                     onClick = {
                         pillTimerButtonOnClick(
                             buttonName = "right",
@@ -154,13 +152,13 @@ fun PillTimerContent(
                     },
                     // can have different colors depending on app state
                     colors = ButtonDefaults.buttonColors(
-                        backgroundColor = MaterialTheme.colors.secondary
-
+                        backgroundColor = Color.Transparent
                     )
                 ) {
-                    Text(
-                        text = "right",
-                        color = MaterialTheme.colors.onSecondary
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_baseline_arrow_right_90),
+                        contentDescription = "Next pill",
+                        tint = if (pillViewModel.isDrugToRight()) MaterialTheme.colors.onBackground else Color.Gray
                     )
                 }
             }
@@ -186,7 +184,11 @@ fun PillTimerContent(
                         backgroundColor = MaterialTheme.colors.error
                     )
                 ) {
-                    paintXML(id = R.drawable.ic_baseline_undo_24, size = 24.dp)
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_baseline_undo_24),
+                        contentDescription = "Undo",
+                        tint = Color.Unspecified
+                    )
                 }
 
                 // delete all pills button
@@ -204,26 +206,12 @@ fun PillTimerContent(
 
                     )
                 ) {
-                    paintXML(id = R.drawable.ic_baseline_delete_24, size = 24.dp)
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_baseline_delete_24),
+                        contentDescription = "Delete all pills",
+                        tint = Color.Unspecified
+                    )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun paintXML(id: Int, size: Dp) {
-    val vector = ImageVector.vectorResource(id = id)
-    val painter = rememberVectorPainter(image = vector)
-    Box(
-        modifier = Modifier
-            .requiredSize(size)
-            .padding(1.dp)
-            .wrapContentSize()
-    ) {
-        Canvas(modifier = Modifier.size(size)) {
-            with(painter) {
-                draw(painter.intrinsicSize)
             }
         }
     }

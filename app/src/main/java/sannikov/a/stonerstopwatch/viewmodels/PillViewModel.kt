@@ -91,17 +91,34 @@ class PillViewModel @Inject constructor(
     fun onDrugSelectRight() {
         val selectedDrugOrdinal = selectedDrug.value.ordinal
         Log.d(TAG, "onDrugSelectRight, selectedDrugOrdinal: $selectedDrugOrdinal")
-        if (selectedDrugOrdinal == Drug.values().size - 1) return
-        onSelectedDrugChange(Drug.values()[selectedDrugOrdinal + 1])
+        if (isDrugToRight()) {
+            onSelectedDrugChange(Drug.values()[selectedDrugOrdinal + 1])
+        }
+    }
+
+    fun isDrugToRight(): Boolean {
+        val selectedDrugOrdinal = selectedDrug.value.ordinal
+        if (selectedDrugOrdinal == Drug.values().size - 1) {
+            return false
+        }
+        return true
     }
 
     fun onDrugSelectLeft() {
         val selectedDrugOrdinal = selectedDrug.value.ordinal
         Log.d(TAG, "onDrugSelectLeft, selectedDrugOrdinal: $selectedDrugOrdinal")
-        if (selectedDrugOrdinal == 0) return
-        onSelectedDrugChange(Drug.values()[selectedDrugOrdinal - 1])
+        if (isDrugToLeft()) {
+            onSelectedDrugChange(Drug.values()[selectedDrugOrdinal - 1])
+        }
     }
 
+    fun isDrugToLeft(): Boolean {
+        val selectedDrugOrdinal = selectedDrug.value.ordinal
+        if (selectedDrugOrdinal == 0) {
+            return false
+        }
+        return true
+    }
 
     // TODO: Refactor idea - Have a semaphore block until selected drug is changed, then update the flow
     // updates the selected drug.
