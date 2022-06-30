@@ -52,10 +52,9 @@ class StopwatchViewModel @Inject constructor(@Named("dataStoreManager") private 
     val pauseTimestampMs: StateFlow<Long> = _pauseTimestampMs.asStateFlow()
 
     fun onPauseTimestampMsChange(newPauseTimestampMs: Long) {
-        Log.d(tag, "newPauseTimestampMs: " + newPauseTimestampMs)
+        Log.d(tag, "newPauseTimestampMs: $newPauseTimestampMs")
         _pauseTimestampMs.value = newPauseTimestampMs
     }
-
 
     private val _clock = MutableStateFlow<Long>(System.currentTimeMillis())
 
@@ -119,6 +118,7 @@ class StopwatchViewModel @Inject constructor(@Named("dataStoreManager") private 
                 tag,
                 "init, state: $newState, pauseTimestampMs: $newpauseTimestampMs, startTimestampMs: $newstartTimestampMs"
             )
+            onClockChange(System.currentTimeMillis()) // hacky way to fix bug where incorrect time when launched and paused.
         }
     }
 

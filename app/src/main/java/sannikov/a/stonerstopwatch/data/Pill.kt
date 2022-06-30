@@ -10,5 +10,6 @@ import androidx.room.*
 data class Pill(
     @NonNull @ColumnInfo(name = "drug") val drug: Drug,
     @NonNull @ColumnInfo(name = "dosageMg") val dosageMg: Int,
+    @NonNull @ColumnInfo(name = "droppedOff") val droppedOff: Boolean = false,
     @NonNull @PrimaryKey val timeTakenMsEpoch: Long
 )

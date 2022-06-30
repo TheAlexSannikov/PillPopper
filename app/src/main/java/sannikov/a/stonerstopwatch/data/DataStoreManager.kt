@@ -56,9 +56,7 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
                 throw InvalidDataStoreKeyException("$keyName is not a valid DataStore key")
             }
         }
-
     }
-
 
 //    companion object : SingletonHolder<DataStoreManager, Context>(::DataStoreManager) {}
 
@@ -84,21 +82,20 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
             }
         }
             .map { Preferences ->
-                Preferences[key] ?: null
+                Preferences[key]
             }
 
         val readValue = flow.first()
-        when (key) {
+        if(readValue == null) {
+            Log.d(tag, "read(): readValue was null!")
+        }
+        return when (key) {
             STOPWATCH_STATE -> {
-                // TODO: Handle first time use better... On new device, readValue is null
-                return StopwatchStates.values()[readValue as Int]
+                if (readValue != null) StopwatchStates.values()[readValue as Int] else StopwatchStates.PAUSED
             }
 
-            START_TIMESTAMP_MS, PAUSE_TIMESTAMP_MS -> {
-                if (readValue == null) {
-                    return 0L
-                }
-                return readValue as Long
+            START_TIMESTAMP_MS, PAUSE_TIMESTAMP_MS -> { // TODO: Is 'now' the best default value for both?
+                if (readValue != null) readValue as Long else System.currentTimeMillis()
             }
             else -> {
                 throw InvalidDataStoreKeyException("$tag: fell into default case of read function with keyName: $keyName")

@@ -3,9 +3,10 @@ package sannikov.a.stonerstopwatch.viewmodels
 import android.content.Context
 import android.util.Log
 import androidx.compose.material.ScaffoldState
-import androidx.compose.material.SnackbarDuration
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
@@ -13,6 +14,7 @@ import kotlinx.coroutines.launch
 import sannikov.a.stonerstopwatch.data.Drug
 import sannikov.a.stonerstopwatch.data.Pill
 import sannikov.a.stonerstopwatch.data.PillRepository
+import sannikov.a.stonerstopwatch.workers.PillDropOffWorker
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,6 +24,7 @@ class PillViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val TAG = "PillViewModel"
+    private val workManger : WorkManager = WorkManager.getInstance(appContext)
 
     /* My understanding of the data flow:
         pillPopped -> pillRepository -> PillDao [ Room! ]
@@ -39,7 +42,13 @@ class PillViewModel @Inject constructor(
         )
 
         Log.d(TAG, "popping pill $pill")
-        onCanUndoPillChange(false)
+
+        // initiate the dropOff timers (auto delete after [drug.periodHrs] and 24 hours)
+        val dropOffRequest = OneTimeWorkRequestBuilder<PillDropOffWorker>()
+            .setInputData(PillDropOffWorker.createInputData(pill))
+            .build()
+        workManger.beginWith(dropOffRequest).enqueue()
+
         viewModelScope.launch {
             pillRepository.popPill(pill)
             onCanUndoPillChange(true)
@@ -173,13 +182,12 @@ class PillViewModel @Inject constructor(
             updateSelectedDrugTakenMg()
         }
 
-//        fun selectedDrug // TODO: What was I doing here?
-
         Log.d(TAG, "init!")
         viewModelScope.launch {
             pillRepository.loadAll().collect { pills ->
                 onAllPoppedPillsChange(pills)
             }
         }
+
     }
 }

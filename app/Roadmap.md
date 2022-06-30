@@ -34,3 +34,12 @@
 
 # TODO:
     Add a splashscreen!
+    
+    PillPopper functionality:
+        Decide when pill cooldowns roll off 
+            1) set amount of hours
+            2) max dosage / day
+        
+        Change dosage by long hold on pill; remember this
+
+    
