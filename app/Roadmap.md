@@ -27,7 +27,10 @@
     data class for pills    [Room entity]
 
     PillTimerScreen
-        pillViewModel       
+        pillViewModel
+            PillDropOffWorker
+                pillRepository  
+                    pillDao     [Room]
             pillRepository  
                 pillDao     [Room]
 

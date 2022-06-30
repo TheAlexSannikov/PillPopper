@@ -1,10 +1,14 @@
 package sannikov.a.stonerstopwatch.viewmodels
 
 import android.content.Context
+import android.icu.util.UniversalTimeScale.toLong
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.material.ScaffoldState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,6 +19,8 @@ import sannikov.a.stonerstopwatch.data.Drug
 import sannikov.a.stonerstopwatch.data.Pill
 import sannikov.a.stonerstopwatch.data.PillRepository
 import sannikov.a.stonerstopwatch.workers.PillDropOffWorker
+import java.util.*
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,7 +30,7 @@ class PillViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val TAG = "PillViewModel"
-    private val workManger : WorkManager = WorkManager.getInstance(appContext)
+    private val workManger: WorkManager = WorkManager.getInstance(appContext)
 
     /* My understanding of the data flow:
         pillPopped -> pillRepository -> PillDao [ Room! ]
@@ -32,6 +38,7 @@ class PillViewModel @Inject constructor(
         pillDao -> pillRepository -> pillRepository.loadAll().collect -> onAllPoppedPillsChange -> updates _allPoppedPills -> triggers allPoppedPills to emit.
      */
     // handles taking a single pill
+    @RequiresApi(Build.VERSION_CODES.O)
     fun onPopPill(scaffoldState: ScaffoldState) {
 
         val drug = selectedDrug.value
@@ -43,11 +50,21 @@ class PillViewModel @Inject constructor(
 
         Log.d(TAG, "popping pill $pill")
 
+        val dropOffData = PillDropOffWorker.createDropOffInputData(pill)
+        val dropOffData24hr = PillDropOffWorker.createDropOff24hInputData(pill)
+
         // initiate the dropOff timers (auto delete after [drug.periodHrs] and 24 hours)
         val dropOffRequest = OneTimeWorkRequestBuilder<PillDropOffWorker>()
-            .setInputData(PillDropOffWorker.createInputData(pill))
+            .setInitialDelay(pill.drug.periodHrs.toLong(), TimeUnit.SECONDS)
+            .setInputData(dropOffData)
             .build()
-        workManger.beginWith(dropOffRequest).enqueue()
+
+        val dropOffRequest24h = OneTimeWorkRequestBuilder<PillDropOffWorker>()
+            .setInitialDelay(24L, TimeUnit.SECONDS)
+            .setInputData(dropOffData24hr)
+            .build()
+
+        workManger.beginWith(listOf(dropOffRequest, dropOffRequest24h)).enqueue()
 
         viewModelScope.launch {
             pillRepository.popPill(pill)

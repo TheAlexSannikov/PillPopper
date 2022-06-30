@@ -36,6 +36,15 @@ class PillRepository @Inject constructor(
     }
 
     suspend fun getAmountConsumedMg(drug: Drug): Int {
-        return pillDao.getAmountConsumedMg(qDrug = drug)
+        val daoRet = pillDao.getAmountConsumedMg(qDrug = drug)
+        return if(daoRet != null) daoRet else 0
+    }
+
+    suspend fun queryPillByTimestamp(timestamp: Long): Pill {
+        return pillDao.queryPillByTimestamp(timestamp)
+    }
+
+    suspend fun updatePill(pill: Pill) {
+        return pillDao.updatePill(pill)
     }
 }

@@ -2,14 +2,13 @@ package sannikov.a.stonerstopwatch.workers
 
 import android.content.Context
 import android.util.Log
+import androidx.hilt.work.HiltWorker
+import androidx.work.CoroutineWorker
 import androidx.work.Data
-import androidx.work.Worker
 import androidx.work.WorkerParameters
-import sannikov.a.stonerstopwatch.data.AppDatabase
-import sannikov.a.stonerstopwatch.data.DataStoreManager
-import sannikov.a.stonerstopwatch.data.Pill
-import sannikov.a.stonerstopwatch.data.PillDao
-import java.lang.Exception
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
+import sannikov.a.stonerstopwatch.data.*
 
 /**
  * handles ONLY pills 'dropping off' after Drug.periodHrs expires
@@ -18,66 +17,66 @@ import java.lang.Exception
  *      Check if worker for this pill already exists (ie on app startup?)
  *
  */
-class PillDropOffWorker(appContext: Context, workerParams: WorkerParameters) :
-    Worker(appContext, workerParams) {
+@HiltWorker
+class PillDropOffWorker @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted workerParams: WorkerParameters,
+    private val pillRepository: PillRepository
+) : CoroutineWorker(appContext, workerParams) {
 
     private val TAG = "PillDropOffWorker"
 
-    override fun doWork(): Result {
+    override suspend fun doWork(): Result {
         Log.d(TAG, "doWork; workParams: ${inputData.keyValueMap}")
         val appContext = applicationContext
 
+        val pillTimestamp = inputData.getLong(WorkerParams.TIMESTAMP_TAKEN, 0)
+        val workType = inputData.getString(WorkerParams.WORK_TYPE)
 
-        return Result.success()
+        return when(workType) {
+            WorkerParams.WORK_TYPE_DROP_OFF -> {
+                val pill = pillRepository.queryPillByTimestamp(pillTimestamp)
+                if(pill.droppedOff) {
+                    Log.e(TAG, "attempting to drop off an already dropped off pill!")
+                }
+                pill.droppedOff = true
+                pillRepository.updatePill(pill)
+                Result.success()
+            }
+            WorkerParams.WORK_TYPE_DROP_OFF_24H -> {
+                val pill = pillRepository.queryPillByTimestamp(pillTimestamp)
+                pillRepository.deletePill(pill)
+                Result.success()
+            }
+            else -> Result.failure()
+        }
     }
 
-    // TODO: Should this be an object?
+    // TODO: Should this be an object, or in companion?
     object WorkerParams {
         const val TIMESTAMP_TAKEN = "tsTaken" // used to lookup pill
-        const val TIMESTAMP_DROP_OFF = "tsDropOff"
-        const val TIMESTAMP_24H = "ts24Hr"
+
+        const val WORK_TYPE = "workType"
+        const val WORK_TYPE_DROP_OFF = "workTypeDropOff"
+        const val WORK_TYPE_DROP_OFF_24H = "workTypeDropOff24h"
     }
-
-    companion object {
-        val MS_PER_HOUR = 3600000L
-        fun createInputData(pill: Pill): Data {
-            val tsTaken = pill.timeTakenMsEpoch
-            val tsDropOff = tsTaken + pill.drug.periodHrs * MS_PER_HOUR
-            return Data.Builder()
-                .putLong(WorkerParams.TIMESTAMP_TAKEN, tsTaken)
-                .putLong(WorkerParams.TIMESTAMP_DROP_OFF, tsDropOff)
-                .build()
-        }
-    }
-
-    // handles deleting pills after 24hrs of taking a pill.
-    class Pill24hDropOffWorker(appContext: Context, workerParams: WorkerParameters) :
-        Worker(appContext, workerParams) {
-
-        private val TAG = "Pill24hDropOffWorker"
-
-        override fun doWork(): Result {
-            Log.d(TAG, "doWork; workParams: ${inputData.keyValueMap}")
-            val appContext = applicationContext
-
-            return try {
-                Result.success()
-            } catch (e: Exception) {
-                Result.failure()
-            }
-        }
 
         companion object {
-            val MS_PER_DAY = 86400000L
 
-            fun createInputData(pill: Pill): Data {
-                val tsTaken = pill.timeTakenMsEpoch
-                val ts24Hr = tsTaken + MS_PER_DAY
-                return Data.Builder()
-                    .putLong(WorkerParams.TIMESTAMP_TAKEN, tsTaken)
-                    .putLong(WorkerParams.TIMESTAMP_24H, ts24Hr)
-                    .build()
-            }
+        fun createDropOffInputData(pill: Pill): Data {
+            val tsTaken = pill.timeTakenMsEpoch
+            return Data.Builder()
+                .putLong(WorkerParams.TIMESTAMP_TAKEN, tsTaken)
+                .putString(WorkerParams.WORK_TYPE, WorkerParams.WORK_TYPE_DROP_OFF)
+                .build()
+        }
+
+        fun createDropOff24hInputData(pill: Pill): Data {
+            val tsTaken = pill.timeTakenMsEpoch
+            return Data.Builder()
+                .putLong(WorkerParams.TIMESTAMP_TAKEN, tsTaken)
+                .putString(WorkerParams.WORK_TYPE, WorkerParams.WORK_TYPE_DROP_OFF_24H)
+                .build()
         }
     }
 }

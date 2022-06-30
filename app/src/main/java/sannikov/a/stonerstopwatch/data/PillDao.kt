@@ -1,9 +1,6 @@
 package sannikov.a.stonerstopwatch.data
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
+import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -27,5 +24,11 @@ interface PillDao {
     suspend fun deleteAllPills()
 
     @Query("SELECT SUM(dosageMg) FROM Pill WHERE drug = :qDrug")
-    suspend fun getAmountConsumedMg(qDrug: Drug): Int
+    suspend fun getAmountConsumedMg(qDrug: Drug): Int?
+
+    @Query("SELECT * FROM Pill WHERE timeTakenMsEpoch = :timestamp" )
+    suspend fun queryPillByTimestamp(timestamp: Long): Pill
+
+    @Update
+    suspend fun updatePill(pill: Pill)
 }
