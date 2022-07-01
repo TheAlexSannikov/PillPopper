@@ -26,9 +26,13 @@ interface PillDao {
     @Query("SELECT SUM(dosageMg) FROM Pill WHERE drug = :qDrug")
     suspend fun getAmountConsumedMg(qDrug: Drug): Int?
 
+    @Query("SELECT SUM(dosageMg) FROM Pill WHERE drug = :qDrug AND droppedOff = 0")
+    suspend fun getAmountConsumedPreDropOffMg(qDrug: Drug): Int?
+
     @Query("SELECT * FROM Pill WHERE timeTakenMsEpoch = :timestamp" )
     suspend fun queryPillByTimestamp(timestamp: Long): Pill
 
     @Update
     suspend fun updatePill(pill: Pill)
+
 }

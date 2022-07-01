@@ -35,8 +35,21 @@ class PillRepository @Inject constructor(
         pillDao.deleteAllPills()
     }
 
+    // returns results from [getAmountConsumedMg, getAmountConsumedPreDropOffMg]
+    suspend fun getAmountsConsumedMg(drug: Drug): Array<Int> {
+        val getAmountConsumedMg = pillDao.getAmountConsumedMg(qDrug = drug) ?: 0
+        val getAmountConsumedPreDropOffMg = pillDao.getAmountConsumedPreDropOffMg(qDrug = drug) ?: 0
+
+        return arrayOf(getAmountConsumedMg,getAmountConsumedPreDropOffMg)
+    }
+
     suspend fun getAmountConsumedMg(drug: Drug): Int {
         val daoRet = pillDao.getAmountConsumedMg(qDrug = drug)
+        return if(daoRet != null) daoRet else 0
+    }
+
+    suspend fun getAmountConsumedPreDropOffMg(drug: Drug): Int {
+        val daoRet = pillDao.getAmountConsumedPreDropOffMg(qDrug = drug)
         return if(daoRet != null) daoRet else 0
     }
 
@@ -47,4 +60,5 @@ class PillRepository @Inject constructor(
     suspend fun updatePill(pill: Pill) {
         return pillDao.updatePill(pill)
     }
+
 }

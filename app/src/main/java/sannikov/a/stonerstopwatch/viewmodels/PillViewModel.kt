@@ -1,14 +1,12 @@
 package sannikov.a.stonerstopwatch.viewmodels
 
 import android.content.Context
-import android.icu.util.UniversalTimeScale.toLong
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.material.ScaffoldState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +17,6 @@ import sannikov.a.stonerstopwatch.data.Drug
 import sannikov.a.stonerstopwatch.data.Pill
 import sannikov.a.stonerstopwatch.data.PillRepository
 import sannikov.a.stonerstopwatch.workers.PillDropOffWorker
-import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -55,12 +52,14 @@ class PillViewModel @Inject constructor(
 
         // initiate the dropOff timers (auto delete after [drug.periodHrs] and 24 hours)
         val dropOffRequest = OneTimeWorkRequestBuilder<PillDropOffWorker>()
-            .setInitialDelay(pill.drug.periodHrs.toLong(), TimeUnit.SECONDS)
+            .addTag(pill.timeTakenMsEpoch.toString())
+            .setInitialDelay(pill.drug.periodHrs.toLong(), TimeUnit.HOURS)
             .setInputData(dropOffData)
             .build()
 
         val dropOffRequest24h = OneTimeWorkRequestBuilder<PillDropOffWorker>()
-            .setInitialDelay(24L, TimeUnit.SECONDS)
+            .addTag(pill.timeTakenMsEpoch.toString())
+            .setInitialDelay(24L, TimeUnit.HOURS)
             .setInputData(dropOffData24hr)
             .build()
 
@@ -81,6 +80,7 @@ class PillViewModel @Inject constructor(
         viewModelScope.launch {
             pillRepository.deleteAllPills()
         }
+        workManger.cancelAllWork()
     }
 
     // stores the value of next undo
@@ -106,6 +106,7 @@ class PillViewModel @Inject constructor(
                 "onUndoPill is called with canUndoPill: ${canUndoPill.value}; updated previousPill to $previousPill"
             )
             pillRepository.deletePill(previousPill)
+            workManger.cancelAllWorkByTag(previousPill.timeTakenMsEpoch.toString())
         }
         onCanUndoPillChange(false)
     }
@@ -160,11 +161,19 @@ class PillViewModel @Inject constructor(
             allPoppedPills.value.filter { pill -> pill.drug == selectedDrug.value }
         _selectedDrugTakenMg.value = newSelectedPoppedPills.sumOf { it.dosageMg }
 
+        val newSelectedPoppedPillsPreDropOff =
+            newSelectedPoppedPills.filter { pill -> !pill.droppedOff }
+
+        _selectedPoppedPillsPreDropOff.value = newSelectedPoppedPillsPreDropOff
+        _selectedDrugTakenPreDropOffMg.value =
+            newSelectedPoppedPillsPreDropOff.sumOf { it.dosageMg }
+
         Log.d(
             TAG,
-            "updateSelectedDrugTakenMg(): selectedDrugTakenMG: $selectedDrugTakenMg\n\tnewSelectedPoppedPills: $newSelectedPoppedPills"
+            "updateSelectedDrugTakenMg(): selectedDrugTakenMG: $selectedDrugTakenMg\n\tnewSelectedPoppedPills: $newSelectedPoppedPills, newSelectedDrugTakenPreDropOffMg: "
         )
         _selectedPoppedPills.value = newSelectedPoppedPills
+
 
     }
 
@@ -177,10 +186,18 @@ class PillViewModel @Inject constructor(
     val _selectedDrugTakenMg = MutableStateFlow(0)
     val selectedDrugTakenMg: StateFlow<Int> = _selectedDrugTakenMg.asStateFlow()
 
+    private val _selectedPoppedPillsPreDropOff = MutableStateFlow<List<Pill>>(emptyList())
+    val selectedPoppedPillsPreDropOff: StateFlow<List<Pill>> = _selectedPoppedPillsPreDropOff.asStateFlow()
+
+    val _selectedDrugTakenPreDropOffMg = MutableStateFlow(0)
+    val selectedDrugTakenPreDropOffMg: StateFlow<Int> = _selectedDrugTakenPreDropOffMg.asStateFlow()
+
+
     // returns the total amount of this drug (in mg) consumed
     suspend fun getAmountConsumedMg(drug: Drug): Int {
         return pillRepository.getAmountConsumedMg(drug)
     }
+
 
     init {
         /**

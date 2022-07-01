@@ -45,4 +45,6 @@
         
         Change dosage by long hold on pill; remember this
 
-    
+    How to handle pills dropping off?
+        Need to be able to determine amount taken in PillRepository s.t. worker can utilize this
+        Just need read the sums, not a flow at this point to determine if time to notify user

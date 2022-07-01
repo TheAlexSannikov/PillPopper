@@ -38,6 +38,8 @@ fun PillTimerScreen(
     val selectedDrug by pillViewModel.selectedDrug.collectAsState()
     val selectedPoppedPills by pillViewModel.selectedPoppedPills.collectAsState()
     val selectedDrugTakenMg by pillViewModel.selectedDrugTakenMg.collectAsState()
+    val selectedDrugTakenPreDropOffMg by pillViewModel.selectedDrugTakenPreDropOffMg.collectAsState()
+    val selectedPoppedPillsPreDropOff by pillViewModel.selectedPoppedPillsPreDropOff.collectAsState()
 
     happyEarth =
         BitmapFactory.decodeResource(LocalContext.current.resources, R.drawable.happy_earth_no_bg)
@@ -47,6 +49,8 @@ fun PillTimerScreen(
         allPoppedPills = allPoppedPills,
         selectedPoppedPills = selectedPoppedPills,
         selectedDrugTakenMg = selectedDrugTakenMg,
+        selectedPoppedPillsPreDropOff = selectedPoppedPillsPreDropOff,
+        selectedDrugTakenPreDropOffMg = selectedDrugTakenPreDropOffMg,
         selectedDrug = selectedDrug,
         modifier = Modifier,
         scaffoldState = scaffoldState,
@@ -62,6 +66,8 @@ fun PillTimerContent(
     scaffoldState: ScaffoldState,
     selectedPoppedPills: List<Pill>,
     selectedDrugTakenMg: Int,
+    selectedPoppedPillsPreDropOff: List<Pill>,
+    selectedDrugTakenPreDropOffMg: Int,
 ) {
     Surface(
         modifier = Modifier
@@ -85,7 +91,23 @@ fun PillTimerContent(
             ) {
                 Text(
                     style = MaterialTheme.typography.h6,
-                    text = "${allPoppedPills.size} pills were popped!\n${selectedDrugTakenMg}mg of ${selectedDrug.drugName} ",
+                    text = "${selectedDrugTakenPreDropOffMg}mg of ${selectedDrug.drugName} popped!",
+                    color = MaterialTheme.colors.onBackground,
+                    textAlign = TextAlign.Center
+                )
+            }
+            // "${selectedPoppedPills.size} pills were popped!\n${selectedDrugTakenPreDropOffMg}mg of ${selectedDrug.drugName} "
+
+            Row(
+                horizontalArrangement = Arrangement.SpaceAround,
+                modifier = modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth()
+                    .padding(vertical = 50.dp)
+            ) {
+                Text(
+                    style = MaterialTheme.typography.body1,
+                    text = "And ${selectedDrugTakenMg}mg within 24hr",
                     color = MaterialTheme.colors.onBackground,
                     textAlign = TextAlign.Center
                 )
