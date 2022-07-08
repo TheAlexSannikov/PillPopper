@@ -2,4 +2,8 @@
     <string name="app_name">StonerStopwatch</string>
     <string name="preference_file_key">sannikov.a.stonerstopwatch.preferences</string>
     <string name="saved_is_running_key">is_running</string>
+    <string name="channel_name_pill_popper">PillPopper notifications</string>
+    <string name="channel_id_pill_popper">chPP</string>
+    <string name="channel_desciption_pill_popper">Inform of when it\'s safe to take next pills</string>
+
 </resources>

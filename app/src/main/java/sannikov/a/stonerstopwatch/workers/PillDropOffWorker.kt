@@ -1,13 +1,22 @@
 package sannikov.a.stonerstopwatch.workers
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import dagger.hilt.android.qualifiers.ApplicationContext
+import sannikov.a.stonerstopwatch.R
 import sannikov.a.stonerstopwatch.data.*
 
 /**
@@ -33,19 +42,21 @@ class PillDropOffWorker @AssistedInject constructor(
         val pillTimestamp = inputData.getLong(WorkerParams.TIMESTAMP_TAKEN, 0)
         val workType = inputData.getString(WorkerParams.WORK_TYPE)
 
-        return when(workType) {
+        return when (workType) {
             WorkerParams.WORK_TYPE_DROP_OFF -> {
                 val pill = pillRepository.queryPillByTimestamp(pillTimestamp)
-                if(pill.droppedOff) {
+                if (pill.droppedOff) {
                     Log.e(TAG, "attempting to drop off an already dropped off pill!")
                 }
                 pill.droppedOff = true
                 pillRepository.updatePill(pill)
+//                showNotificationPP(appContext)
                 Result.success()
             }
             WorkerParams.WORK_TYPE_DROP_OFF_24H -> {
                 val pill = pillRepository.queryPillByTimestamp(pillTimestamp)
                 pillRepository.deletePill(pill)
+                pillRepository.updatePill(pill)
                 Result.success()
             }
             else -> Result.failure()
@@ -61,7 +72,10 @@ class PillDropOffWorker @AssistedInject constructor(
         const val WORK_TYPE_DROP_OFF_24H = "workTypeDropOff24h"
     }
 
-        companion object {
+    companion object {
+        val CHANNEL_NAME_PILL_POPPER = "PillPopper notifications"
+        val CHANNEL_ID_PILL_POPPER = "chPP"
+        val CHANNEL_DESCRIPTION_PILL_POPPER = "Inform of when it\'s safe to take next pills"
 
         fun createDropOffInputData(pill: Pill): Data {
             val tsTaken = pill.timeTakenMsEpoch
@@ -77,6 +91,48 @@ class PillDropOffWorker @AssistedInject constructor(
                 .putLong(WorkerParams.TIMESTAMP_TAKEN, tsTaken)
                 .putString(WorkerParams.WORK_TYPE, WorkerParams.WORK_TYPE_DROP_OFF_24H)
                 .build()
+        }
+    }
+
+    private fun showNotificationPP(appContext: Context) {
+        val channelId = CHANNEL_ID_PILL_POPPER
+        val title = "time to pop pills!"
+        val text = "its been 8 hours since you've last popped one"
+
+        var builder = NotificationCompat.Builder(applicationContext, channelId)
+            .setSmallIcon(R.drawable.ic_acetaminophen)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+
+        createNotificationChannelPP(appContext)
+
+        with(NotificationManagerCompat.from(applicationContext)) {
+            notify(0, builder.build())
+        }
+
+    }
+
+    private fun createNotificationChannelPP(appContext: Context) {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val id = CHANNEL_ID_PILL_POPPER
+            val name = CHANNEL_NAME_PILL_POPPER
+            val descriptionText = CHANNEL_DESCRIPTION_PILL_POPPER
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+
+            val channel = NotificationChannel(id, name, importance).apply {
+                description = descriptionText
+            }
+            // Register the channel with the system
+            /* TODO: Finish this
+            val notificationManager: NotificationManager =
+                getSystemService(appContext.NOTIFICATION_SERVICE, android.service.notification) as NotificationManager
+                notificationManager.createNotificationChannel(channel)
+
+             */
+
         }
     }
 }
