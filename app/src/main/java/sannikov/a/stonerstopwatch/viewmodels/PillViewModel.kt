@@ -35,13 +35,12 @@ class PillViewModel @Inject constructor(
         pillDao -> pillRepository -> pillRepository.loadAll().collect -> onAllPoppedPillsChange -> updates _allPoppedPills -> triggers allPoppedPills to emit.
      */
     // handles taking a single pill
-    @RequiresApi(Build.VERSION_CODES.O)
     fun onPopPill(scaffoldState: ScaffoldState) {
 
         val drug = selectedDrug.value
         val pill = Pill(
             drug = drug,
-            dosageMg = 500,
+            dosageMg = drug.defaultDosageMg,
             timeTakenMsEpoch = System.currentTimeMillis()
         )
 

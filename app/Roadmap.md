@@ -48,3 +48,11 @@
     How to handle pills dropping off?
         Need to be able to determine amount taken in PillRepository s.t. worker can utilize this
         Just need read the sums, not a flow at this point to determine if time to notify user
+
+    Notifications:
+        Need to determine how to have a service to send notifs within PillDropOffWorker
+
+    Change dosage:
+        Long-press on pill allows to choose dosage. (1x), (2x), (3x), (custom) dosages available
+        Custom tab lets you change the default dosage. This is persisted.
+            Idea: This becomes the new (1x) dosage
