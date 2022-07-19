@@ -35,7 +35,9 @@ class PillRepository @Inject constructor(
         pillDao.deleteAllPills()
     }
 
-    // returns results from [getAmountConsumedMg, getAmountConsumedPreDropOffMg]
+    /**
+     * returns results from [getAmountConsumedMg, getAmountConsumedPreDropOffMg]
+     */
     suspend fun getAmountsConsumedMg(drug: Drug): Array<Int> {
         val getAmountConsumedMg = pillDao.getAmountConsumedMg(qDrug = drug) ?: 0
         val getAmountConsumedPreDropOffMg = pillDao.getAmountConsumedPreDropOffMg(qDrug = drug) ?: 0
@@ -59,6 +61,36 @@ class PillRepository @Inject constructor(
 
     suspend fun updatePill(pill: Pill) {
         return pillDao.updatePill(pill)
+    }
+
+    /**
+     * returns true if the user can pop a certain drug
+     */
+    suspend fun poppingEnabled(drug: Drug): Boolean {
+        val amountConsumed24hrPrior = getAmountConsumedMg(drug)
+        val amountConsumedPreDropOffPrior = getAmountConsumedPreDropOffMg(drug)
+
+        return amountConsumed24hrPrior < drug.maxDosageMgPerDay && amountConsumedPreDropOffPrior < drug.maxDosageMgPerPeriod
+    }
+
+    /**
+     * updates the pill and returns true if the dropOff of pill enables user to take more
+     */
+    suspend fun updatePillAndCheckIfUpdateEnablePopping(pill: Pill): Boolean {
+        val allowedToPopBefore = poppingEnabled(pill.drug)
+        updatePill(pill)
+        return (!allowedToPopBefore && poppingEnabled(pill.drug))
+
+    }
+
+    /**
+     * deletes the pill and returns true if the dropOff of pill enables user to take more
+     */
+    suspend fun deletePillAndCheckIfUpdateEnablePopping(pill: Pill): Boolean {
+        val allowedToPopBefore = poppingEnabled(pill.drug)
+        deletePill(pill)
+        return (!allowedToPopBefore && poppingEnabled(pill.drug))
+
     }
 
 }

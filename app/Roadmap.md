@@ -50,7 +50,8 @@
         Just need read the sums, not a flow at this point to determine if time to notify user
 
     Notifications:
-        Need to determine how to have a service to send notifs within PillDropOffWorker
+        notify only when user was 'disallowed' from popping before dropoff
+        TODO: pill color (large icons)
 
     Change dosage:
         Long-press on pill allows to choose dosage. (1x), (2x), (3x), (custom) dosages available

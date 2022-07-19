@@ -3,21 +3,20 @@ package sannikov.a.stonerstopwatch.workers
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContentProviderCompat.requireContext
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import dagger.hilt.android.qualifiers.ApplicationContext
-import sannikov.a.stonerstopwatch.R
 import sannikov.a.stonerstopwatch.data.*
+
 
 /**
  * handles ONLY pills 'dropping off' after Drug.periodHrs expires
@@ -49,14 +48,20 @@ class PillDropOffWorker @AssistedInject constructor(
                     Log.e(TAG, "attempting to drop off an already dropped off pill!")
                 }
                 pill.droppedOff = true
-                pillRepository.updatePill(pill)
-                showNotificationPP()
+
+                // update the pill
+                if (pillRepository.updatePillAndCheckIfUpdateEnablePopping(pill)) {
+                    // only notify if the pill dropping off enables popping
+                    showNotificationPP(pill.drug, regularDropOff = true)
+                }
                 Result.success()
             }
             WorkerParams.WORK_TYPE_DROP_OFF_24H -> {
                 val pill = pillRepository.queryPillByTimestamp(pillTimestamp)
-                pillRepository.deletePill(pill)
-                pillRepository.updatePill(pill)
+                if (pillRepository.deletePillAndCheckIfUpdateEnablePopping(pill)) {
+                    // only notify if the pill dropping off enables popping
+                    showNotificationPP(pill.drug, regularDropOff = false)
+                }
                 Result.success()
             }
             else -> Result.failure()
@@ -94,13 +99,18 @@ class PillDropOffWorker @AssistedInject constructor(
         }
     }
 
-    private fun showNotificationPP() {
+    /**
+     * Shows a notification that the user can pop more pills
+     * @param drug: The type of drug they can take
+     * @param regularDropOff: true when regular drop off (ie 8hrs); false when 24hr drop off
+     */
+    private fun showNotificationPP(drug: Drug, regularDropOff: Boolean) {
         val channelId = CHANNEL_ID_PILL_POPPER
-        val title = "time to pop pills!"
-        val text = "its been 8 hours since you've last popped one"
+        val title = "time to pop ${drug.drugName}!"
+        val text = if(regularDropOff) "its been ${drug.periodHrs} hours since you've last popped one" else "your 24hr limit of ${drug.maxDosageMgPerDay}mg has elapsed"
 
         var builder = NotificationCompat.Builder(applicationContext, channelId)
-            .setSmallIcon(R.drawable.ic_acetaminophen)
+            .setSmallIcon(drug.imageId)
             .setContentTitle(title)
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

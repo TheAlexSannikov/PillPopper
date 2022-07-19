@@ -26,7 +26,7 @@ class PillViewModel @Inject constructor(
 
     private val TAG = "PillViewModel"
     private val workManger: WorkManager = WorkManager.getInstance(appContext)
-    private val WORKER_TIME_UNIT = TimeUnit.HOURS // expected .HOURS, but can be .SECONDS for fast mode
+    private val WORKER_TIME_UNIT = TimeUnit.SECONDS // expected .HOURS, but can be .SECONDS for fast mode
 
     /* My understanding of the data flow:
         pillPopped -> pillRepository -> PillDao [ Room! ]
