@@ -1,9 +1,7 @@
 package sannikov.a.stonerstopwatch.viewmodels
 
 import android.content.Context
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.material.ScaffoldState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -28,6 +26,7 @@ class PillViewModel @Inject constructor(
 
     private val TAG = "PillViewModel"
     private val workManger: WorkManager = WorkManager.getInstance(appContext)
+    private val WORKER_TIME_UNIT = TimeUnit.HOURS // expected .HOURS, but can be .SECONDS for fast mode
 
     /* My understanding of the data flow:
         pillPopped -> pillRepository -> PillDao [ Room! ]
@@ -52,13 +51,13 @@ class PillViewModel @Inject constructor(
         // initiate the dropOff timers (auto delete after [drug.periodHrs] and 24 hours)
         val dropOffRequest = OneTimeWorkRequestBuilder<PillDropOffWorker>()
             .addTag(pill.timeTakenMsEpoch.toString())
-            .setInitialDelay(pill.drug.periodHrs.toLong(), TimeUnit.HOURS)
+            .setInitialDelay(pill.drug.periodHrs.toLong(), WORKER_TIME_UNIT)
             .setInputData(dropOffData)
             .build()
 
         val dropOffRequest24h = OneTimeWorkRequestBuilder<PillDropOffWorker>()
             .addTag(pill.timeTakenMsEpoch.toString())
-            .setInitialDelay(24L, TimeUnit.HOURS)
+            .setInitialDelay(24L, WORKER_TIME_UNIT)
             .setInputData(dropOffData24hr)
             .build()
 

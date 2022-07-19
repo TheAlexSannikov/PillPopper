@@ -37,7 +37,7 @@ class PillDropOffWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         Log.d(TAG, "doWork; workParams: ${inputData.keyValueMap}")
-        val appContext = applicationContext
+//        val appContext = applicationContext // this is a thing
 
         val pillTimestamp = inputData.getLong(WorkerParams.TIMESTAMP_TAKEN, 0)
         val workType = inputData.getString(WorkerParams.WORK_TYPE)
@@ -50,7 +50,7 @@ class PillDropOffWorker @AssistedInject constructor(
                 }
                 pill.droppedOff = true
                 pillRepository.updatePill(pill)
-//                showNotificationPP(appContext)
+                showNotificationPP()
                 Result.success()
             }
             WorkerParams.WORK_TYPE_DROP_OFF_24H -> {
@@ -94,7 +94,7 @@ class PillDropOffWorker @AssistedInject constructor(
         }
     }
 
-    private fun showNotificationPP(appContext: Context) {
+    private fun showNotificationPP() {
         val channelId = CHANNEL_ID_PILL_POPPER
         val title = "time to pop pills!"
         val text = "its been 8 hours since you've last popped one"
@@ -105,15 +105,14 @@ class PillDropOffWorker @AssistedInject constructor(
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
-        createNotificationChannelPP(appContext)
+        val notificationManager = NotificationManagerCompat.from(applicationContext)
+        createNotificationChannelPP(notificationManager)
 
-        with(NotificationManagerCompat.from(applicationContext)) {
-            notify(0, builder.build())
-        }
-
+        Log.d(TAG, "showNotificationPP: notifying!")
+        notificationManager.notify(0, builder.build())
     }
 
-    private fun createNotificationChannelPP(appContext: Context) {
+    private fun createNotificationChannelPP(notificationManager: NotificationManagerCompat) {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -121,18 +120,13 @@ class PillDropOffWorker @AssistedInject constructor(
             val name = CHANNEL_NAME_PILL_POPPER
             val descriptionText = CHANNEL_DESCRIPTION_PILL_POPPER
             val importance = NotificationManager.IMPORTANCE_DEFAULT
-
             val channel = NotificationChannel(id, name, importance).apply {
                 description = descriptionText
             }
+
             // Register the channel with the system
-            /* TODO: Finish this
-            val notificationManager: NotificationManager =
-                getSystemService(appContext.NOTIFICATION_SERVICE, android.service.notification) as NotificationManager
-                notificationManager.createNotificationChannel(channel)
-
-             */
-
+            Log.d(TAG, "createNotificationChannelPP: creating channel!")
+            notificationManager.createNotificationChannel(channel)
         }
     }
 }

@@ -53,46 +53,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /*
-    private fun showNotificationPP() {
-        val channelId = getString(R.string.channel_id_pill_popper)
-        val title = "time to pop pills!"
-        val text = "its been 8 hours since you've last popped one"
-
-        var builder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.ic_ibuprofen)
-            .setContentTitle(title)
-            .setContentText(text)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-
-        createNotificationChannelPP()
-
-        with(NotificationManagerCompat.from(this)) {
-            notify(0, builder.build())
-        }
-
-    }
-
-    private fun createNotificationChannelPP() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val id = getString(R.string.channel_id_pill_popper)
-            val name = getString(R.string.channel_name_pill_popper)
-            val descriptionText = getString(R.string.channel_desciption_pill_popper)
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-
-            val channel = NotificationChannel(id, name, importance).apply {
-                description = descriptionText
-            }
-            // Register the channel with the system
-            val notificationManager: NotificationManager =
-                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-        }
-    }
-     */
-
     private fun startClock() {
         // TODO: block when the state is not running
         var delayCount = 0
@@ -107,8 +67,6 @@ class MainActivity : AppCompatActivity() {
                     delay(timeBetweenTicksMs)
                     if (delayCount % 15000 == 0) {
                         Log.d(TAG, "startTicks, delayCount: $delayCount")
-                        Log.d(TAG, "Notifying")
-//                        showNotificationPP()
                     }
                     delayCount++
                     stopwatchViewModel.onClockChange(newClock = System.currentTimeMillis(), print = false)

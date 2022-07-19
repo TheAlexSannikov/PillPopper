@@ -23,7 +23,7 @@ enum class Drug(
     ),
     IBUPROFEN(
         drugName = "ibuprofen",
-        defaultDosageMg = 500,
+        defaultDosageMg = 200,
         periodHrs = 6,
         maxDosageMgPerPeriod = 400,
         maxDosageMgPerDay = 1200,
