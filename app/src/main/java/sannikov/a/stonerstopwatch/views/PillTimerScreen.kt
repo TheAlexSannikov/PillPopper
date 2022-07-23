@@ -40,6 +40,7 @@ fun PillTimerScreen(
     val selectedDrugTakenMg by pillViewModel.selectedDrugTakenMg.collectAsState()
     val selectedDrugTakenPreDropOffMg by pillViewModel.selectedDrugTakenPreDropOffMg.collectAsState()
     val selectedPoppedPillsPreDropOff by pillViewModel.selectedPoppedPillsPreDropOff.collectAsState()
+    // TODO: appMode
 
     happyEarth =
         BitmapFactory.decodeResource(LocalContext.current.resources, R.drawable.happy_earth_no_bg)

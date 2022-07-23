@@ -15,6 +15,7 @@ import androidx.work.Data
 import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import sannikov.a.stonerstopwatch.R
 import sannikov.a.stonerstopwatch.data.*
 
 
@@ -110,7 +111,7 @@ class PillDropOffWorker @AssistedInject constructor(
         val text = if(regularDropOff) "its been ${drug.periodHrs} hours since you've last popped one" else "your 24hr limit of ${drug.maxDosageMgPerDay}mg has elapsed"
 
         var builder = NotificationCompat.Builder(applicationContext, channelId)
-            .setSmallIcon(drug.imageId)
+            .setSmallIcon(R.drawable.ic_half_pill)
             .setContentTitle(title)
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

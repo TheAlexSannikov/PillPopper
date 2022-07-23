@@ -1,3 +1,17 @@
+About this project:
+    MVVM architecture
+    Two standalone apps, "StonerStopwatch" and "PillPopper"
+    
+    StonerStopwatch:
+        As of now, a simple stopwatch that has a progress arc around a cute 'happy earth'
+
+    PillPopper:
+        More complex app, allows for user to track verious different pills
+
+    StonerStopwatchV2
+        Future app [orignal idea] Would be a CLI architecture, builds off experiences from both previous apps
+        
+
 # Styles (.xml, deprecated)
 
 	Base.Theme.StonerStopwatch
@@ -57,3 +71,10 @@
         Long-press on pill allows to choose dosage. (1x), (2x), (3x), (custom) dosages available
         Custom tab lets you change the default dosage. This is persisted.
             Idea: This becomes the new (1x) dosage
+    
+        This requires PillPopper's Mode [dosageSelectMode, pillPopMode]
+
+    Refactor: separate StonerStopwatch from PillPopper
+        Prepare for StonerStopwatchV2
+        Publish StonerStopwatchV1?
+    
