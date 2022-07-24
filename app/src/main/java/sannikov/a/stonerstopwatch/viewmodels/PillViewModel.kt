@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import sannikov.a.stonerstopwatch.data.Drug
 import sannikov.a.stonerstopwatch.data.Pill
 import sannikov.a.stonerstopwatch.data.PillRepository
+import sannikov.a.stonerstopwatch.data.PillTimerMode
 import sannikov.a.stonerstopwatch.workers.PillDropOffWorker
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -166,10 +167,26 @@ class PillViewModel @Inject constructor(
             "updateSelectedDrugTakenMg(): selectedDrugTakenMG: $selectedDrugTakenMg\n\tnewSelectedPoppedPills: $newSelectedPoppedPills, newSelectedDrugTakenPreDropOffMg: "
         )
         _selectedPoppedPills.value = newSelectedPoppedPills
-
     }
 
-    // Todo: app mode
+    private fun onAppModeChange(mode: PillTimerMode) {
+        _appMode.value = mode
+    }
+
+    fun onPillLongPress() {
+        Log.d(TAG, "onPillLongPress")
+
+        // change the mode of the app
+        onAppModeChange(
+            when (appMode.value) {
+                PillTimerMode.POP_PILLS -> PillTimerMode.DOSAGE_SELECT
+                PillTimerMode.DOSAGE_SELECT -> PillTimerMode.POP_PILLS
+            }
+        )
+    }
+
+    private val _appMode = MutableStateFlow(PillTimerMode.POP_PILLS)
+    val appMode: StateFlow<PillTimerMode> = _appMode.asStateFlow()
 
     // the drug the user is about to pop
     private val _selectedDrug = MutableStateFlow(Drug.ACETAMINOPHEN)
@@ -185,7 +202,8 @@ class PillViewModel @Inject constructor(
     val selectedDrugTakenMg: StateFlow<Int> = _selectedDrugTakenMg.asStateFlow()
 
     private val _selectedPoppedPillsPreDropOff = MutableStateFlow<List<Pill>>(emptyList())
-    val selectedPoppedPillsPreDropOff: StateFlow<List<Pill>> = _selectedPoppedPillsPreDropOff.asStateFlow()
+    val selectedPoppedPillsPreDropOff: StateFlow<List<Pill>> =
+        _selectedPoppedPillsPreDropOff.asStateFlow()
 
     val _selectedDrugTakenPreDropOffMg = MutableStateFlow(0)
     val selectedDrugTakenPreDropOffMg: StateFlow<Int> = _selectedDrugTakenPreDropOffMg.asStateFlow()
@@ -220,6 +238,5 @@ class PillViewModel @Inject constructor(
                 onAllPoppedPillsChange(pills)
             }
         }
-
     }
 }

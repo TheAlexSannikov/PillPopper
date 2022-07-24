@@ -1,17 +1,11 @@
 package sannikov.a.stonerstopwatch
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material.MaterialTheme
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -22,7 +16,7 @@ import kotlinx.coroutines.flow.*
 import sannikov.a.stonerstopwatch.data.AppDatabase
 import sannikov.a.stonerstopwatch.data.DataStoreManager
 import sannikov.a.stonerstopwatch.viewmodels.StopwatchViewModel
-import sannikov.a.stonerstopwatch.viewmodels.StopwatchStates
+import sannikov.a.stonerstopwatch.data.StopwatchStates
 
 import javax.inject.Inject
 

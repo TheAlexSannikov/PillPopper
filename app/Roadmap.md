@@ -4,6 +4,8 @@ About this project:
     
     StonerStopwatch:
         As of now, a simple stopwatch that has a progress arc around a cute 'happy earth'
+        Messy state management by maintaining separate VM from persistent (only writes to persistent  storage on app close)
+            Could be improved by reading VM state directly from store [as in MVI]
 
     PillPopper:
         More complex app, allows for user to track verious different pills
@@ -71,10 +73,14 @@ About this project:
         Long-press on pill allows to choose dosage. (1x), (2x), (3x), (custom) dosages available
         Custom tab lets you change the default dosage. This is persisted.
             Idea: This becomes the new (1x) dosage
+        TODO: improve button so it can show when it is pressed (like a normal button that can handle longPress)
     
         This requires PillPopper's Mode [dosageSelectMode, pillPopMode]
 
     Refactor: separate StonerStopwatch from PillPopper
         Prepare for StonerStopwatchV2
         Publish StonerStopwatchV1?
+
+    Screen sizes:
+        Looks whacky small display sizes
     

@@ -11,29 +11,48 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import sannikov.a.stonerstopwatch.data.DataStoreManager
+import sannikov.a.stonerstopwatch.data.StopwatchStates
 import sannikov.a.stonerstopwatch.views.STOPWATCH_PERIOD_MS
 import javax.inject.Inject
 import javax.inject.Named
 
 
-enum class StopwatchStates {
-    RESET,
-    RUNNING,
-    PAUSED,
-}
-
 //class StateViewModel(dataStoreManager: DataStoreManager? = null) : ViewModel() {
 @HiltViewModel
 class StopwatchViewModel @Inject constructor(@Named("dataStoreManager") private val dataStoreManager: DataStoreManager) :
     ViewModel() {
-    private val tag = "StateViewModel"
+    private val TAG = "StateViewModel"
 
     private val _stopwatchState = MutableStateFlow<StopwatchStates>(StopwatchStates.PAUSED)
 
     val stopwatchState: StateFlow<StopwatchStates> = _stopwatchState.asStateFlow()
 
     fun onStopwatchStateChange(newState: StopwatchStates) {
-        Log.d(tag, "newState: $newState")
+        Log.d(TAG, "newState: $newState")
+        val currTime = System.currentTimeMillis()
+
+        when(newState) {
+            StopwatchStates.RUNNING -> {
+                val pauseTimestampMs = pauseTimestampMs.value
+                // account for time the timer was paused moving by startTime forward by that amount of time
+                val lengthOfPause = currTime - pauseTimestampMs;
+
+                Log.d(TAG, "\tlengthOfPause was known to be $lengthOfPause")
+                Log.d(TAG, "\tnewStartTimestampMs = ${startTimestampMs.value + lengthOfPause}")
+                onStartTimestampMsChange(newStartTimestampMs = startTimestampMs.value + lengthOfPause)
+            }
+            StopwatchStates.PAUSED -> {
+                Log.d(TAG, "\tnewPauseTimestampMs = $currTime")
+                onPauseTimestampMsChange(newPauseTimestampMs = currTime)
+            }
+            StopwatchStates.RESET -> {
+                Log.d(TAG, "\tnewStartTimestampMs = $currTime, newPauseTimestampMs = $currTime, newClock = $currTime")
+                onStartTimestampMsChange(newStartTimestampMs = currTime)
+                onPauseTimestampMsChange(newPauseTimestampMs = currTime)
+                onClockChange(newClock = currTime, print = true)
+            }
+        }
+
         _stopwatchState.value = newState
     }
 
@@ -43,7 +62,7 @@ class StopwatchViewModel @Inject constructor(@Named("dataStoreManager") private 
     val startTimestampMs: StateFlow<Long> = _startTimestampMs.asStateFlow()
 
     fun onStartTimestampMsChange(newStartTimestampMs: Long) {
-        Log.d(tag, "newStartTimestampMs: " + newStartTimestampMs)
+        Log.d(TAG, "newStartTimestampMs: " + newStartTimestampMs)
         _startTimestampMs.value = newStartTimestampMs
     }
 
@@ -52,7 +71,7 @@ class StopwatchViewModel @Inject constructor(@Named("dataStoreManager") private 
     val pauseTimestampMs: StateFlow<Long> = _pauseTimestampMs.asStateFlow()
 
     fun onPauseTimestampMsChange(newPauseTimestampMs: Long) {
-        Log.d(tag, "newPauseTimestampMs: $newPauseTimestampMs")
+        Log.d(TAG, "newPauseTimestampMs: $newPauseTimestampMs")
         _pauseTimestampMs.value = newPauseTimestampMs
     }
 
@@ -103,8 +122,19 @@ class StopwatchViewModel @Inject constructor(@Named("dataStoreManager") private 
         _elapsedTimeMs.value = newElapsedTimeMs
     }
 
+    fun onPressStartStop() {
+        onStopwatchStateChange(when(stopwatchState.value) {
+            StopwatchStates.RUNNING -> StopwatchStates.PAUSED
+            else -> StopwatchStates.RUNNING
+        })
+    }
+
+    fun onPressReset() {
+        onStopwatchStateChange(StopwatchStates.RESET)
+    }
+
     init {
-        Log.d(tag, "init!")
+        Log.d(TAG, "init!")
         viewModelScope.launch {
             // TODO: may want to put back in null checks:   dataStoreManager?.read
             val newState = dataStoreManager.read("stopwatchState")
@@ -115,7 +145,7 @@ class StopwatchViewModel @Inject constructor(@Named("dataStoreManager") private 
             newstartTimestampMs?.let { onStartTimestampMsChange(newstartTimestampMs as Long) }
 
             Log.d(
-                tag,
+                TAG,
                 "init, state: $newState, pauseTimestampMs: $newpauseTimestampMs, startTimestampMs: $newstartTimestampMs"
             )
             onClockChange(System.currentTimeMillis()) // hacky way to fix bug where incorrect time when launched and paused.
@@ -124,16 +154,15 @@ class StopwatchViewModel @Inject constructor(@Named("dataStoreManager") private 
 
     // saves all values to persistent storage
     fun saveState() {
-        Log.d(tag, "saveState:")
+        Log.d(TAG, "saveState:")
         GlobalScope.launch(Dispatchers.IO) {
-            dataStoreManager?.save(
+            dataStoreManager.save(
                 "stopwatchState",
                 this@StopwatchViewModel.stopwatchState.value.ordinal
             )
-            dataStoreManager?.save("pauseTimestampMs", this@StopwatchViewModel.pauseTimestampMs.value)
-            dataStoreManager?.save("startTimestampMs", this@StopwatchViewModel.startTimestampMs.value)
+            dataStoreManager.save("pauseTimestampMs", this@StopwatchViewModel.pauseTimestampMs.value)
+            dataStoreManager.save("startTimestampMs", this@StopwatchViewModel.startTimestampMs.value)
         }
     }
-
 
 }

@@ -24,7 +24,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import sannikov.a.stonerstopwatch.R
 import sannikov.a.stonerstopwatch.TimeFormat
 import sannikov.a.stonerstopwatch.viewmodels.StopwatchViewModel
-import sannikov.a.stonerstopwatch.viewmodels.StopwatchStates
+import sannikov.a.stonerstopwatch.data.StopwatchStates
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -32,7 +32,6 @@ import kotlin.math.sin
 
 const val STOPWATCH_PERIOD_MS = 60000L
 const val arcStartPosition = 180F // 0 is 3 o'clock, 90 is 12 o'clock
-const val TAG_STOPWATCH_SCREEN = "StopwatchScreen"
 val happyEarthSize = 300.dp
 
 lateinit var happyEarth: Bitmap
@@ -79,7 +78,6 @@ fun StopwatchContent(
 ) {
     val stateViewModel = hiltViewModel<StopwatchViewModel>()
 
-//    val displayTime by stateViewModel.displayTime.collectAsState()
     // background of app
     Surface(
         modifier = Modifier
@@ -91,7 +89,6 @@ fun StopwatchContent(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-//                .background(Color.Cyan)
                 .wrapContentWidth()
                 .wrapContentWidth()
                 .fillMaxHeight(),
@@ -103,10 +100,7 @@ fun StopwatchContent(
 //                    }
                     .requiredSize(happyEarthSize)
                     .align(Alignment.CenterHorizontally)
-//                    .background(Color.LightGray)
                     .padding(1.dp)
-//                    .wrapContentWidth()
-//                    .height(IntrinsicSize.Max)
                     .wrapContentSize()
             ) {
                 DrawProgressionArc(elapsedTimeMs = elapsedTimeMs, periodMs = STOPWATCH_PERIOD_MS)
@@ -123,16 +117,12 @@ fun StopwatchContent(
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = modifier
                     .wrapContentHeight()
-//                    .background(Color.Red)
             ) {
 
                 // start/stop button
                 Button(
                     onClick = {
-                        stopwatchButtonOnClick(
-                            buttonName = "start",
-                            stopwatchViewModel = stateViewModel,
-                        )
+                        stateViewModel.onPressStartStop()
                     },
                     // can have different colors depending on app state
                     colors = ButtonDefaults.buttonColors(
@@ -157,10 +147,7 @@ fun StopwatchContent(
                 // reset button
                 Button(
                     onClick = {
-                        stopwatchButtonOnClick(
-                            buttonName = "reset",
-                            stopwatchViewModel = stateViewModel,
-                        )
+                        stateViewModel.onPressReset()
                     },
                     // can have different colors depending on app state
                     colors = ButtonDefaults.buttonColors(
@@ -194,7 +181,6 @@ fun DrawProgressionArc(elapsedTimeMs: Long, periodMs: Long) {
     // draw the circular arc of the stopwatch
     Canvas(
         modifier = Modifier
-//        .background(Color.Magenta)
             .size(happyEarthSize)
     ) {
         // the under arc
@@ -233,55 +219,4 @@ fun DrawProgressionArc(elapsedTimeMs: Long, periodMs: Long) {
         )
     }
 
-}
-
-fun stopwatchButtonOnClick(
-    buttonName: String,
-    stopwatchViewModel: StopwatchViewModel, // TODO: Hilt for DI?
-) {
-    val oldState = stopwatchViewModel.stopwatchState.value
-    lateinit var newState: StopwatchStates
-
-    when (buttonName) {
-        "start" -> {
-            newState = if (oldState == StopwatchStates.RUNNING) {
-                StopwatchStates.PAUSED
-            } else {
-                StopwatchStates.RUNNING
-            }
-        }
-
-        "reset" -> {
-            newState = StopwatchStates.RESET
-        }
-    }
-    Log.d(TAG_STOPWATCH_SCREEN, "$buttonName was clicked, oldState: $oldState, newState: $newState")
-
-    stopwatchViewModel.onStopwatchStateChange(newState = newState)
-
-    val currTime = System.currentTimeMillis()
-
-    when (newState) {
-        // TODO: handle these cases; save startTime
-        StopwatchStates.RUNNING -> {
-
-            val pauseTimestampMs = stopwatchViewModel.pauseTimestampMs.value
-            // account for time the timer was paused moving by startTime forward by that amount of time
-            val lengthOfPause = currTime - pauseTimestampMs; // TODO: this will probably bug out..
-
-            Log.d(TAG_STOPWATCH_SCREEN, "\tlengthOfPause was known to be $lengthOfPause")
-            Log.d(TAG_STOPWATCH_SCREEN, "buttonOnClick(); newStartTimestampMs = ${stopwatchViewModel.startTimestampMs.value + lengthOfPause}")
-            stopwatchViewModel.onStartTimestampMsChange(newStartTimestampMs = stopwatchViewModel.startTimestampMs.value + lengthOfPause)
-        }
-        StopwatchStates.PAUSED -> {
-            Log.d(TAG_STOPWATCH_SCREEN, "buttonOnClick(); newPauseTimestampMs = $currTime")
-            stopwatchViewModel.onPauseTimestampMsChange(newPauseTimestampMs = currTime)
-        }
-        StopwatchStates.RESET -> {
-            Log.d(TAG_STOPWATCH_SCREEN, "buttonOnClick(); newStartTimestampMs = $currTime, newPauseTimestampMs = $currTime, newClock = $currTime")
-            stopwatchViewModel.onStartTimestampMsChange(newStartTimestampMs = currTime)
-            stopwatchViewModel.onPauseTimestampMsChange(newPauseTimestampMs = currTime)
-            stopwatchViewModel.onClockChange(newClock = currTime, print = true)
-        }
-    }
 }

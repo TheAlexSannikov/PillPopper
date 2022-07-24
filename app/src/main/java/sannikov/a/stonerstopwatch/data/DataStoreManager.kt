@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import sannikov.a.stonerstopwatch.InvalidDataStoreKeyException
-import sannikov.a.stonerstopwatch.viewmodels.StopwatchStates
 import java.io.IOException
 import javax.inject.Inject
 

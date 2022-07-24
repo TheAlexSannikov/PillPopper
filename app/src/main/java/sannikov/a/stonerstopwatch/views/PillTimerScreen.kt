@@ -2,6 +2,7 @@ package sannikov.a.stonerstopwatch.pilltimer
 
 import android.graphics.BitmapFactory
 import android.util.Log
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
@@ -11,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -19,11 +21,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import sannikov.a.stonerstopwatch.R
 import sannikov.a.stonerstopwatch.data.Drug
 import sannikov.a.stonerstopwatch.data.Pill
+import sannikov.a.stonerstopwatch.data.PillTimerMode
 import sannikov.a.stonerstopwatch.viewmodels.PillViewModel
 import sannikov.a.stonerstopwatch.views.happyEarth
 
-const val ACETAMINOPHEN_PERIOD = 21600L // 21600000L 6 hours
-const val TAG_PILL_TIMER_SCREEN = "PillTimerScreen"
 val PILL_SIZE = 120.dp
 val ARROW_SIZE = 90.dp
 val ICON_SIZE = 24.dp
@@ -40,7 +41,7 @@ fun PillTimerScreen(
     val selectedDrugTakenMg by pillViewModel.selectedDrugTakenMg.collectAsState()
     val selectedDrugTakenPreDropOffMg by pillViewModel.selectedDrugTakenPreDropOffMg.collectAsState()
     val selectedPoppedPillsPreDropOff by pillViewModel.selectedPoppedPillsPreDropOff.collectAsState()
-    // TODO: appMode
+    val appMode by pillViewModel.appMode.collectAsState()
 
     happyEarth =
         BitmapFactory.decodeResource(LocalContext.current.resources, R.drawable.happy_earth_no_bg)
@@ -53,6 +54,7 @@ fun PillTimerScreen(
         selectedPoppedPillsPreDropOff = selectedPoppedPillsPreDropOff,
         selectedDrugTakenPreDropOffMg = selectedDrugTakenPreDropOffMg,
         selectedDrug = selectedDrug,
+        appMode = appMode,
         modifier = Modifier,
         scaffoldState = scaffoldState,
     )
@@ -60,6 +62,172 @@ fun PillTimerScreen(
 
 @Composable
 fun PillTimerContent(
+    pillViewModel: PillViewModel,
+    allPoppedPills: List<Pill>,
+    selectedPoppedPills: List<Pill>,
+    selectedDrugTakenMg: Int,
+    selectedPoppedPillsPreDropOff: List<Pill>,
+    selectedDrugTakenPreDropOffMg: Int,
+    selectedDrug: Drug,
+    appMode: PillTimerMode,
+    modifier: Modifier.Companion,
+    scaffoldState: ScaffoldState
+) {
+    when (appMode) {
+        PillTimerMode.POP_PILLS -> PillTimerPopPillMode(
+            pillViewModel,
+            allPoppedPills,
+            selectedDrug,
+            modifier,
+            scaffoldState,
+            selectedPoppedPills,
+            selectedDrugTakenMg,
+            selectedPoppedPillsPreDropOff,
+            selectedDrugTakenPreDropOffMg
+        )
+        PillTimerMode.DOSAGE_SELECT -> PillTimerDosageSelectMode(
+            pillViewModel,
+            selectedDrug,
+            modifier,
+            scaffoldState
+        )
+    }
+}
+
+@Composable
+fun PillTimerDosageSelectMode(
+    pillViewModel: PillViewModel,
+    selectedDrug: Drug,
+    modifier: Modifier = Modifier,
+    scaffoldState: ScaffoldState,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxSize(),
+        color = MaterialTheme.colors.background,
+    ) {
+
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+
+            Row(
+                horizontalArrangement = Arrangement.SpaceAround,
+                modifier = modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth()
+                    .padding(vertical = 50.dp)
+            ) {
+                Text(
+                    style = MaterialTheme.typography.h6,
+                    text = "Choose the dosage for ${selectedDrug.drugName}!",
+                    color = MaterialTheme.colors.onBackground,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            TextButton(
+                onClick = {
+                    pillViewModel.onDrugSelectLeft()
+                },
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.Transparent
+                )
+            ) {
+
+                Text(text = "400mg")
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp)
+            ) {
+                // choose drug to left
+                TextButton(
+                    onClick = {
+                        pillViewModel.onDrugSelectLeft()
+                    },
+
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.Transparent
+                    )
+                ) {
+
+                    Text(text = "200mg")
+                }
+
+                Surface(
+                    modifier = Modifier
+                        .size(140.dp)
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onTap = {
+                                    if (scaffoldState != null) {
+                                        pillViewModel.onPopPill(scaffoldState = scaffoldState)
+                                    }
+                                },
+                                onLongPress = {
+                                    pillViewModel.onPillLongPress()
+                                }
+                            )
+                        },
+                    shape = CircleShape,
+                    color = MaterialTheme.colors.primary,
+                ) {
+                    Icon(
+                        painter = painterResource(id = selectedDrug.imageId),
+                        contentDescription = "Pop ${selectedDrug.drugName}",
+                        tint = Color.Unspecified
+                    )
+                }
+
+                // choose drug to right
+                TextButton(
+                    onClick = {
+                        pillViewModel.onDrugSelectRight()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.Transparent
+                    )
+                ) {
+                    Text("600mg")
+                }
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth()
+                    .padding(top = 50.dp)
+            ) {
+                // choose drug to right
+                TextButton(
+                    onClick = {
+                        pillViewModel.onDrugSelectRight()
+                    },
+                    // can have different colors depending on app state
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.Transparent
+                    )
+                ) {
+                    Text("Custom")
+                }
+
+            }
+        }
+    }
+}
+
+@Composable
+fun PillTimerPopPillMode(
     pillViewModel: PillViewModel,
     allPoppedPills: List<Pill>,
     selectedDrug: Drug,
@@ -97,7 +265,6 @@ fun PillTimerContent(
                     textAlign = TextAlign.Center
                 )
             }
-            // "${selectedPoppedPills.size} pills were popped!\n${selectedDrugTakenPreDropOffMg}mg of ${selectedDrug.drugName} "
 
             Row(
                 horizontalArrangement = Arrangement.SpaceAround,
@@ -125,10 +292,7 @@ fun PillTimerContent(
                 // choose drug to left
                 TextButton(
                     onClick = {
-                        pillTimerButtonOnClick(
-                            buttonName = "left",
-                            pillViewModel = pillViewModel,
-                        )
+                        pillViewModel.onDrugSelectLeft()
                     },
                     // can have different colors depending on app state
                     colors = ButtonDefaults.buttonColors(
@@ -143,20 +307,23 @@ fun PillTimerContent(
                     )
                 }
 
-                Button(
-                    modifier = Modifier.size(140.dp),
-                    onClick = {
-                        pillTimerButtonOnClick(
-                            buttonName = "pop",
-                            pillViewModel = pillViewModel,
-                            scaffoldState = scaffoldState,
-                        )
-                    },
+                Surface(
+                    modifier = Modifier
+                        .size(140.dp)
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onTap = {
+                                    if (scaffoldState != null) {
+                                        pillViewModel.onPopPill(scaffoldState = scaffoldState)
+                                    }
+                                },
+                                onLongPress = {
+                                    pillViewModel.onPillLongPress()
+                                },
+                            )
+                        },
                     shape = CircleShape,
-                    // can have different colors depending on app state
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = MaterialTheme.colors.primary
-                    )
+                    color = MaterialTheme.colors.primary,
                 ) {
                     Icon(
                         painter = painterResource(id = selectedDrug.imageId),
@@ -168,10 +335,7 @@ fun PillTimerContent(
                 // choose drug to right
                 TextButton(
                     onClick = {
-                        pillTimerButtonOnClick(
-                            buttonName = "right",
-                            pillViewModel = pillViewModel,
-                        )
+                        pillViewModel.onDrugSelectRight()
                     },
                     // can have different colors depending on app state
                     colors = ButtonDefaults.buttonColors(
@@ -196,10 +360,7 @@ fun PillTimerContent(
                 // undo
                 Button(
                     onClick = {
-                        pillTimerButtonOnClick(
-                            buttonName = "undo",
-                            pillViewModel = pillViewModel,
-                        )
+                        pillViewModel.onUndoPill()
                     },
                     // can have different colors depending on app state
                     modifier = Modifier.padding(horizontal = 15.dp),
@@ -217,10 +378,7 @@ fun PillTimerContent(
                 // delete all pills button
                 Button(
                     onClick = {
-                        pillTimerButtonOnClick(
-                            buttonName = "purge",
-                            pillViewModel = pillViewModel,
-                        )
+                        pillViewModel.deleteAllPills()
                     },
                     // can have different colors depending on app state
                     modifier = Modifier.padding(horizontal = 15.dp),
@@ -236,48 +394,6 @@ fun PillTimerContent(
                     )
                 }
             }
-        }
-    }
-}
-
-fun pillTimerButtonOnClick(
-    buttonName: String,
-    pillViewModel: PillViewModel,
-    scaffoldState: ScaffoldState? = null, // TODO: Hilt for DI?
-) {
-
-    when (buttonName) {
-        "pop" -> {
-            val pillName = pillViewModel.selectedDrug.value.drugName
-            Log.d(
-                TAG_PILL_TIMER_SCREEN,
-                "$buttonName was clicked. Popping $pillName!"
-            )
-            if (scaffoldState != null) {
-                pillViewModel.onPopPill(scaffoldState = scaffoldState)
-            }
-        }
-        "purge" -> {
-            Log.d(
-                TAG_PILL_TIMER_SCREEN,
-                "$buttonName was clicked. Wiping all pills from records!"
-            )
-            pillViewModel.deleteAllPills()
-        }
-        "undo" -> {
-            Log.d(
-                TAG_PILL_TIMER_SCREEN,
-                "$buttonName was clicked. undoAction: ${pillViewModel.canUndoPill.value}"
-            )
-            pillViewModel.onUndoPill()
-        }
-        "left" -> {
-            Log.d(TAG_PILL_TIMER_SCREEN, "$buttonName was clicked. choosing left pill!")
-            pillViewModel.onDrugSelectLeft()
-        }
-        "right" -> {
-            Log.d(TAG_PILL_TIMER_SCREEN, "$buttonName was clicked. choosing right pill!")
-            pillViewModel.onDrugSelectRight()
         }
     }
 }
