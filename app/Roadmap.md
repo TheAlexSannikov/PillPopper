@@ -22,10 +22,13 @@ About this project:
 
 # Styles
 	MainActivity
-		Theme.kt
-			AppColors
-			AppDimensions
-			AppTypography
+        MaterialTheme - currently uses default values!
+
+		NOT USED!:
+            Theme.kt
+                AppColors
+                AppDimensions
+                AppTypography
 
 # Navigation
 	MainActivity:onCreate
@@ -83,4 +86,9 @@ About this project:
 
     Screen sizes:
         Looks whacky small display sizes
+
+    Finish PillRepository.onEnterCustomDosage()
+        Rename Drug [enum] to be DrugDefaults
+        Create a new MutableDrug data class that is read from DrugRepositry [new]
+            The MutableDrugs are to be referenced instead of DrugDefaults
     

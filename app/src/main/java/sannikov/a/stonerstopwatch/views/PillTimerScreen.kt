@@ -1,14 +1,12 @@
 package sannikov.a.stonerstopwatch.pilltimer
 
 import android.graphics.BitmapFactory
-import android.util.Log
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,6 +22,9 @@ import sannikov.a.stonerstopwatch.data.Pill
 import sannikov.a.stonerstopwatch.data.PillTimerMode
 import sannikov.a.stonerstopwatch.viewmodels.PillViewModel
 import sannikov.a.stonerstopwatch.views.happyEarth
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.Text
+import androidx.compose.ui.text.input.KeyboardType
 
 val PILL_SIZE = 120.dp
 val ARROW_SIZE = 90.dp
@@ -70,7 +71,7 @@ fun PillTimerContent(
     selectedDrugTakenPreDropOffMg: Int,
     selectedDrug: Drug,
     appMode: PillTimerMode,
-    modifier: Modifier.Companion,
+    modifier: Modifier,
     scaffoldState: ScaffoldState
 ) {
     when (appMode) {
@@ -94,6 +95,7 @@ fun PillTimerContent(
     }
 }
 
+// TODO: merge this with PillTimerPopPills(), include animations
 @Composable
 fun PillTimerDosageSelectMode(
     pillViewModel: PillViewModel,
@@ -102,7 +104,7 @@ fun PillTimerDosageSelectMode(
     scaffoldState: ScaffoldState,
 ) {
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize(),
         color = MaterialTheme.colors.background,
     ) {
@@ -117,65 +119,76 @@ fun PillTimerDosageSelectMode(
             Row(
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = modifier
-                    .wrapContentHeight()
+                    .weight(3f, fill = true)
                     .fillMaxWidth()
-                    .padding(vertical = 50.dp)
             ) {
                 Text(
                     style = MaterialTheme.typography.h6,
-                    text = "Choose the dosage for ${selectedDrug.drugName}!",
+                    text = "Select dosage",
                     color = MaterialTheme.colors.onBackground,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.align(Alignment.Bottom)
                 )
-            }
-
-            TextButton(
-                onClick = {
-                    pillViewModel.onDrugSelectLeft()
-                },
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color.Transparent
-                )
-            ) {
-
-                Text(text = "400mg")
             }
 
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround,
                 modifier = modifier
-                    .wrapContentHeight()
+                    .weight(1f, fill = true)
                     .fillMaxWidth()
-                    .padding(horizontal = 10.dp)
             ) {
-                // choose drug to left
-                TextButton(
+                Button(
                     onClick = {
                         pillViewModel.onDrugSelectLeft()
                     },
-
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color.Transparent
-                    )
+                    ),
+                    modifier = modifier
+                        .weight(0.2f)
+                        .align(Alignment.Top),
+                    contentPadding = PaddingValues(0.dp),
+                    elevation = null,
                 ) {
+                    Text("400mg")
+                }
+            }
 
-                    Text(text = "200mg")
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = modifier
+                    .weight(3f, fill = true)
+                    .fillMaxWidth()
+            ) {
+
+                Button(
+                    onClick = {
+                        pillViewModel.onDrugSelectLeft()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.Transparent
+                    ),
+                    modifier = modifier.weight(0.2f),
+                    contentPadding = PaddingValues(0.dp),
+                    elevation = null,
+                ) {
+                    Text("200mg")
                 }
 
+                // pop button
                 Surface(
-                    modifier = Modifier
-                        .size(140.dp)
+                    modifier = modifier
+                        .weight(0.4f)
+                        .aspectRatio(1f)
                         .pointerInput(Unit) {
                             detectTapGestures(
                                 onTap = {
-                                    if (scaffoldState != null) {
-                                        pillViewModel.onPopPill(scaffoldState = scaffoldState)
-                                    }
+                                    pillViewModel.onPopPill(scaffoldState = scaffoldState)
                                 },
                                 onLongPress = {
                                     pillViewModel.onPillLongPress()
-                                }
+                                },
                             )
                         },
                     shape = CircleShape,
@@ -184,44 +197,57 @@ fun PillTimerDosageSelectMode(
                     Icon(
                         painter = painterResource(id = selectedDrug.imageId),
                         contentDescription = "Pop ${selectedDrug.drugName}",
-                        tint = Color.Unspecified
+                        tint = Color.Unspecified,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(10.dp)
                     )
                 }
 
-                // choose drug to right
-                TextButton(
+                Button(
                     onClick = {
                         pillViewModel.onDrugSelectRight()
                     },
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color.Transparent
-                    )
+                    ),
+                    modifier = modifier
+                        .weight(0.2f)
+                        .padding(0.dp),
+                    contentPadding = PaddingValues(0.dp),
+                    elevation = null,
                 ) {
                     Text("600mg")
                 }
             }
 
+            // enter custom dosage
             Row(
                 horizontalArrangement = Arrangement.Center,
                 modifier = modifier
-                    .wrapContentHeight()
+                    .weight(1f, fill = true)
                     .fillMaxWidth()
-                    .padding(top = 50.dp)
             ) {
-                // choose drug to right
-                TextButton(
-                    onClick = {
-                        pillViewModel.onDrugSelectRight()
-                    },
-                    // can have different colors depending on app state
+
+                Button(
+                    onClick = { pillViewModel.onPromptCustomDosage() },
+                    modifier = Modifier
+                        .padding(horizontal = 15.dp)
+                        .padding(0.dp),
                     colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color.Transparent
-                    )
+                        backgroundColor = MaterialTheme.colors.error
+                    ),
+                    elevation = null,
                 ) {
+                    promptDosageInput(scaffoldState = scaffoldState)
                     Text("Custom")
                 }
-
             }
+            Spacer(
+                modifier = modifier
+                    .weight(1.5f, fill = true)
+                    .fillMaxWidth()
+            )
         }
     }
 }
@@ -239,7 +265,7 @@ fun PillTimerPopPillMode(
     selectedDrugTakenPreDropOffMg: Int,
 ) {
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize(),
         color = MaterialTheme.colors.background,
     ) {
@@ -254,68 +280,72 @@ fun PillTimerPopPillMode(
             Row(
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = modifier
-                    .wrapContentHeight()
+                    .weight(3f, fill = true)
                     .fillMaxWidth()
-                    .padding(vertical = 50.dp)
             ) {
                 Text(
                     style = MaterialTheme.typography.h6,
                     text = "${selectedDrugTakenPreDropOffMg}mg of ${selectedDrug.drugName} popped!",
                     color = MaterialTheme.colors.onBackground,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.align(Alignment.Bottom)
                 )
             }
 
             Row(
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = modifier
-                    .wrapContentHeight()
+                    .weight(1f, fill = true)
                     .fillMaxWidth()
-                    .padding(vertical = 50.dp)
             ) {
                 Text(
                     style = MaterialTheme.typography.body1,
                     text = "And ${selectedDrugTakenMg}mg within 24hr",
                     color = MaterialTheme.colors.onBackground,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .align(Alignment.Top)
+                        .padding(5.dp)
                 )
             }
 
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = modifier
-                    .wrapContentHeight()
+                    .weight(3f, fill = true)
                     .fillMaxWidth()
-                    .padding(horizontal = 10.dp)
             ) {
                 // choose drug to left
-                TextButton(
+                Button(
                     onClick = {
                         pillViewModel.onDrugSelectLeft()
                     },
                     // can have different colors depending on app state
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color.Transparent
-                    )
+                    ),
+                    modifier = modifier.weight(0.2f),
+                    contentPadding = PaddingValues(0.dp),
+                    elevation = null,
                 ) {
-
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_baseline_arrow_left_90),
+                        painter = painterResource(id = R.drawable.ic_baseline_arrow_left_24),
                         contentDescription = "Previous pill",
-                        tint = if (pillViewModel.isDrugToLeft()) MaterialTheme.colors.onBackground else Color.Gray
+                        tint = if (pillViewModel.isDrugToLeft()) MaterialTheme.colors.onBackground else Color.Gray,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
 
+                // pop button
                 Surface(
-                    modifier = Modifier
-                        .size(140.dp)
+                    modifier = modifier
+                        .weight(0.4f)
+                        .aspectRatio(1f)
                         .pointerInput(Unit) {
                             detectTapGestures(
                                 onTap = {
-                                    if (scaffoldState != null) {
-                                        pillViewModel.onPopPill(scaffoldState = scaffoldState)
-                                    }
+                                    pillViewModel.onPopPill(scaffoldState = scaffoldState)
                                 },
                                 onLongPress = {
                                     pillViewModel.onPillLongPress()
@@ -328,24 +358,35 @@ fun PillTimerPopPillMode(
                     Icon(
                         painter = painterResource(id = selectedDrug.imageId),
                         contentDescription = "Pop ${selectedDrug.drugName}",
-                        tint = Color.Unspecified
+                        tint = Color.Unspecified,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(15.dp)
                     )
                 }
 
                 // choose drug to right
-                TextButton(
+                Button(
                     onClick = {
                         pillViewModel.onDrugSelectRight()
                     },
                     // can have different colors depending on app state
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color.Transparent
-                    )
+                    ),
+                    modifier = modifier
+                        .weight(0.2f)
+                        .padding(0.dp),
+                    contentPadding = PaddingValues(0.dp),
+                    elevation = null,
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_baseline_arrow_right_90),
+                        painter = painterResource(id = R.drawable.ic_baseline_arrow_right_24),
                         contentDescription = "Next pill",
-                        tint = if (pillViewModel.isDrugToRight()) MaterialTheme.colors.onBackground else Color.Gray
+                        tint = if (pillViewModel.isDrugToRight()) MaterialTheme.colors.onBackground else Color.Gray,
+                        modifier = modifier
+                            .fillMaxSize()
+                            .padding(0.dp)
                     )
                 }
             }
@@ -353,9 +394,8 @@ fun PillTimerPopPillMode(
             Row(
                 horizontalArrangement = Arrangement.Center,
                 modifier = modifier
-                    .wrapContentHeight()
+                    .weight(1f, fill = true)
                     .fillMaxWidth()
-                    .padding(top = 50.dp)
             ) {
                 // undo
                 Button(
@@ -363,15 +403,18 @@ fun PillTimerPopPillMode(
                         pillViewModel.onUndoPill()
                     },
                     // can have different colors depending on app state
-                    modifier = Modifier.padding(horizontal = 15.dp),
+                    modifier = Modifier
+                        .padding(horizontal = 15.dp)
+                        .padding(0.dp),
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = MaterialTheme.colors.error
-                    )
+                    ),
+                    elevation = null,
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_baseline_undo_24),
                         contentDescription = "Undo",
-                        tint = Color.Unspecified
+                        tint = Color.Unspecified,
                     )
                 }
 
@@ -381,11 +424,12 @@ fun PillTimerPopPillMode(
                         pillViewModel.deleteAllPills()
                     },
                     // can have different colors depending on app state
-                    modifier = Modifier.padding(horizontal = 15.dp),
+                    modifier = Modifier.padding(horizontal = 10.dp),
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = MaterialTheme.colors.error
 
-                    )
+                    ),
+                    elevation = null,
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_baseline_delete_24),
@@ -394,6 +438,75 @@ fun PillTimerPopPillMode(
                     )
                 }
             }
+            Spacer(
+                modifier = modifier
+                    .weight(1.5f, fill = true)
+                    .fillMaxWidth()
+            )
         }
     }
 }
+
+@Composable
+fun promptDosageInput(
+    pillViewModel: PillViewModel = hiltViewModel(),
+    scaffoldState: ScaffoldState
+) {
+    val openDialog by pillViewModel.promptCustomDosage.collectAsState()
+
+    var input by remember { mutableStateOf("0") }
+
+    if (openDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                pillViewModel.onDismissCustomDosage()
+            },
+            title = {
+                Text(text = "Enter dosage")
+            },
+            text = {
+                Column() {
+                    TextField(
+                        value = input,
+                        placeholder = { Text("Custom") },
+                        onValueChange = { input = it },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+                    Text("this will be saved for future reference")
+                }
+            },
+            buttons = {
+                Row(
+                    modifier = Modifier
+                        .padding(all = 8.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Button(
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .padding(end = 10.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = MaterialTheme.colors.primaryVariant
+                        ),
+                        onClick = { pillViewModel.onDismissCustomDosage() }
+                    ) {
+                        Text("Cancel")
+                    }
+                    Button(
+                        modifier = Modifier.wrapContentWidth(),
+                        onClick = {
+                            pillViewModel.onEnterCustomDosage(
+                                input.toIntOrNull(),
+                                scaffoldState = scaffoldState
+                            )
+                        }
+                    ) {
+                        Text("Set dosage")
+                    }
+                }
+            }
+        )
+    }
+}
+

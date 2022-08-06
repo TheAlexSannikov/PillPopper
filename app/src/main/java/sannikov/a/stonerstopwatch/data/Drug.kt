@@ -3,11 +3,11 @@ package sannikov.a.stonerstopwatch.data
 import sannikov.a.stonerstopwatch.R
 
 /**
- * Stores information about each drug
+ * Default information for each drug
  */
 enum class Drug(
     val drugName: String,
-    val defaultDosageMg: Int,
+    val dosageMg: Int,
     val periodHrs: Int,
     val maxDosageMgPerPeriod: Int,
     val maxDosageMgPerDay: Int,
@@ -15,7 +15,7 @@ enum class Drug(
 ) {
     ACETAMINOPHEN(
         drugName = "acetaminophen",
-        defaultDosageMg = 500,
+        dosageMg = 500,
         periodHrs = 6,
         maxDosageMgPerPeriod = 1000,
         maxDosageMgPerDay = 3000,
@@ -23,7 +23,7 @@ enum class Drug(
     ),
     IBUPROFEN(
         drugName = "ibuprofen",
-        defaultDosageMg = 200,
+        dosageMg = 200,
         periodHrs = 6,
         maxDosageMgPerPeriod = 400,
         maxDosageMgPerDay = 1200,
@@ -31,11 +31,10 @@ enum class Drug(
     ),
     BENADRYL(
         drugName = "benadryl",
-        defaultDosageMg = 25,
+        dosageMg = 25,
         periodHrs = 6,
         maxDosageMgPerPeriod = 50,
         maxDosageMgPerDay = 150,
         imageId = R.drawable.ic_benadryl
     )
-
 }

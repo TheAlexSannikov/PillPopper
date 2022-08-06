@@ -3,6 +3,7 @@ package sannikov.a.stonerstopwatch.viewmodels
 import android.content.Context
 import android.util.Log
 import androidx.compose.material.ScaffoldState
+import androidx.compose.material.SnackbarDuration
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.OneTimeWorkRequestBuilder
@@ -40,7 +41,7 @@ class PillViewModel @Inject constructor(
         val drug = selectedDrug.value
         val pill = Pill(
             drug = drug,
-            dosageMg = drug.defaultDosageMg,
+            dosageMg = drug.dosageMg,
             timeTakenMsEpoch = System.currentTimeMillis()
         )
 
@@ -212,6 +213,31 @@ class PillViewModel @Inject constructor(
     // returns the total amount of this drug (in mg) consumed
     suspend fun getAmountConsumedMg(drug: Drug): Int {
         return pillRepository.getAmountConsumedMg(drug)
+    }
+
+    private val _promptCustomDosage = MutableStateFlow(false)
+    val promptCustomDosage = _promptCustomDosage.asStateFlow()
+
+    fun onPromptCustomDosage() {
+        _promptCustomDosage.value = true;
+    }
+
+    fun onDismissCustomDosage() {
+        _promptCustomDosage.value = false;
+    }
+
+    fun onEnterCustomDosage(dosageMg: Int?, scaffoldState: ScaffoldState) {
+        if(dosageMg == null) {
+            viewModelScope.launch {
+            scaffoldState.snackbarHostState.showSnackbar("Please enter a dosage", duration = SnackbarDuration.Short)
+            }
+            return
+        }
+
+        // save the custom dosage for the selected drug
+        // TODO: should persist drug data in a new DrugRepository
+        //      the type should be a wrapper around Drug (delegate to it)
+//        pillRepository.
     }
 
 
