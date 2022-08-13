@@ -51,7 +51,7 @@ class PillDropOffWorker @AssistedInject constructor(
                 pill.droppedOff = true
 
                 // update the pill
-                if (pillRepository.updatePillAndCheckIfUpdateEnablePopping(pill)) {
+                if (updatePillAndCheckIfUpdateEnablePopping(pill)) {
                     // only notify if the pill dropping off enables popping
                     showNotificationPP(pill.drug, regularDropOff = true)
                 }
@@ -59,7 +59,7 @@ class PillDropOffWorker @AssistedInject constructor(
             }
             WorkerParams.WORK_TYPE_DROP_OFF_24H -> {
                 val pill = pillRepository.queryPillByTimestamp(pillTimestamp)
-                if (pillRepository.deletePillAndCheckIfUpdateEnablePopping(pill)) {
+                if (deletePillAndCheckIfUpdateEnablePopping(pill)) {
                     // only notify if the pill dropping off enables popping
                     showNotificationPP(pill.drug, regularDropOff = false)
                 }
@@ -139,5 +139,24 @@ class PillDropOffWorker @AssistedInject constructor(
             Log.d(TAG, "createNotificationChannelPP: creating channel!")
             notificationManager.createNotificationChannel(channel)
         }
+    }
+
+    /**
+     * deletes the pill and returns true if the dropOff of pill enables user to take more
+     */
+    suspend fun deletePillAndCheckIfUpdateEnablePopping(pill: Pill): Boolean {
+        val allowedToPopBefore = pillRepository.poppingEnabled(pill.drug)
+        pillRepository.deletePill(pill)
+        return (!allowedToPopBefore && pillRepository.poppingEnabled(pill.drug))
+
+    }
+
+    /**
+     * updates the pill and returns true if the dropOff of pill enables user to take more
+     */
+    suspend fun updatePillAndCheckIfUpdateEnablePopping(pill: Pill): Boolean {
+        val allowedToPopBefore = pillRepository.poppingEnabled(pill.drug)
+        pillRepository.updatePill(pill)
+        return (!allowedToPopBefore && pillRepository.poppingEnabled(pill.drug))
     }
 }

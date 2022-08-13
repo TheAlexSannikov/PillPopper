@@ -1,5 +1,6 @@
 package sannikov.a.stonerstopwatch.data
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -8,6 +9,8 @@ import javax.inject.Singleton
 class PillRepository @Inject constructor(
     private val pillDao: PillDao
 ) {
+    private val TAG = "PillRepoitory"
+
     suspend fun loadAll(): Flow<List<Pill>> {
         return pillDao.loadAll()
     }
@@ -67,30 +70,13 @@ class PillRepository @Inject constructor(
      * returns true if the user can pop a certain drug
      */
     suspend fun poppingEnabled(drug: Drug): Boolean {
-        val amountConsumed24hrPrior = getAmountConsumedMg(drug)
-        val amountConsumedPreDropOffPrior = getAmountConsumedPreDropOffMg(drug)
 
-        return amountConsumed24hrPrior < drug.maxDosageMgPerDay && amountConsumedPreDropOffPrior < drug.maxDosageMgPerPeriod
+        val amountConsumed24hr = getAmountConsumedMg(drug)
+        val amountConsumedPreDropOff = getAmountConsumedPreDropOffMg(drug)
+
+        val ret = (amountConsumed24hr + drug.dosageMg) <= drug.maxDosageMgPerDay && (amountConsumedPreDropOff + drug.dosageMg) <= drug.maxDosageMgPerPeriod
+
+        Log.d(TAG, "poppingEnabled returning $ret")
+        return ret
     }
-
-    /**
-     * updates the pill and returns true if the dropOff of pill enables user to take more
-     */
-    suspend fun updatePillAndCheckIfUpdateEnablePopping(pill: Pill): Boolean {
-        val allowedToPopBefore = poppingEnabled(pill.drug)
-        updatePill(pill)
-        return (!allowedToPopBefore && poppingEnabled(pill.drug))
-
-    }
-
-    /**
-     * deletes the pill and returns true if the dropOff of pill enables user to take more
-     */
-    suspend fun deletePillAndCheckIfUpdateEnablePopping(pill: Pill): Boolean {
-        val allowedToPopBefore = poppingEnabled(pill.drug)
-        deletePill(pill)
-        return (!allowedToPopBefore && poppingEnabled(pill.drug))
-
-    }
-
 }

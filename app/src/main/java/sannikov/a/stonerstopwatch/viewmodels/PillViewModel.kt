@@ -28,7 +28,8 @@ class PillViewModel @Inject constructor(
 
     private val TAG = "PillViewModel"
     private val workManger: WorkManager = WorkManager.getInstance(appContext)
-    private val WORKER_TIME_UNIT = TimeUnit.HOURS // expected .HOURS, but can be .SECONDS for fast mode
+    private val WORKER_TIME_UNIT =
+        TimeUnit.HOURS // expected .HOURS, but can be .SECONDS for fast mode
 
     /* My understanding of the data flow:
         pillPopped -> pillRepository -> PillDao [ Room! ]
@@ -36,41 +37,48 @@ class PillViewModel @Inject constructor(
         pillDao -> pillRepository -> pillRepository.loadAll().collect -> onAllPoppedPillsChange -> updates _allPoppedPills -> triggers allPoppedPills to emit.
      */
     // handles taking a single pill
-    fun onPopPill(scaffoldState: ScaffoldState) {
-
+    fun onPopPill(scaffoldState: ScaffoldState, overrideDrugMaximum: Boolean = false) {
+        Log.d(
+            TAG,
+            "onPopPill(overrideDrugMaximum == $overrideDrugMaximum) and isPoppingEnabled == ${isPoppingEnabled.value}"
+        )
         val drug = selectedDrug.value
+
         val pill = Pill(
             drug = drug,
             dosageMg = drug.dosageMg,
             timeTakenMsEpoch = System.currentTimeMillis()
         )
 
-        Log.d(TAG, "popping pill $pill")
-
-        val dropOffData = PillDropOffWorker.createDropOffInputData(pill)
-        val dropOffData24hr = PillDropOffWorker.createDropOff24hInputData(pill)
-
-        // initiate the dropOff timers (auto delete after [drug.periodHrs] and 24 hours)
-        val dropOffRequest = OneTimeWorkRequestBuilder<PillDropOffWorker>()
-            .addTag(pill.timeTakenMsEpoch.toString())
-            .setInitialDelay(pill.drug.periodHrs.toLong(), WORKER_TIME_UNIT)
-            .setInputData(dropOffData)
-            .build()
-
-        val dropOffRequest24h = OneTimeWorkRequestBuilder<PillDropOffWorker>()
-            .addTag(pill.timeTakenMsEpoch.toString())
-            .setInitialDelay(24L, WORKER_TIME_UNIT)
-            .setInputData(dropOffData24hr)
-            .build()
-
-        workManger.beginWith(listOf(dropOffRequest, dropOffRequest24h)).enqueue()
-
         viewModelScope.launch {
-            pillRepository.popPill(pill)
-            onCanUndoPillChange(true)
-            val amountConsumed = getAmountConsumedMg(drug)
-            // TODO: Make snackbar useful - its too spammy
-//            scaffoldState.snackbarHostState.showSnackbar("popped ${amountConsumed}mg of ${drug.name}", duration = SnackbarDuration.Short)
+            if (overrideDrugMaximum || isPoppingEnabled.value) {
+                Log.d(TAG, "onPopPill(): popping pill $pill")
+
+                pillRepository.popPill(pill)
+                onCanUndoPillChange(true)
+
+                val dropOffData = PillDropOffWorker.createDropOffInputData(pill)
+                val dropOffData24hr = PillDropOffWorker.createDropOff24hInputData(pill)
+
+                // initiate the dropOff timers (auto delete after [drug.periodHrs] and 24 hours)
+                val dropOffRequest = OneTimeWorkRequestBuilder<PillDropOffWorker>()
+                    .addTag(pill.timeTakenMsEpoch.toString())
+                    .setInitialDelay(pill.drug.periodHrs.toLong(), WORKER_TIME_UNIT)
+                    .setInputData(dropOffData)
+                    .build()
+
+                val dropOffRequest24h = OneTimeWorkRequestBuilder<PillDropOffWorker>()
+                    .addTag(pill.timeTakenMsEpoch.toString())
+                    .setInitialDelay(24L, WORKER_TIME_UNIT)
+                    .setInputData(dropOffData24hr)
+                    .build()
+
+                workManger.beginWith(listOf(dropOffRequest, dropOffRequest24h)).enqueue()
+
+            } else {
+                Log.d(TAG, "onPopPill(): unable to pop $pill, prompting dialog")
+                onPromptCustomDosage()
+            }
         }
     }
 
@@ -148,6 +156,7 @@ class PillViewModel @Inject constructor(
     private fun onSelectedDrugChange(drug: Drug) {
         _selectedDrug.value = drug
         updateSelectedDrugTakenMg()
+        updateIsEnabled()
     }
 
     // to be called when a pill is popped, and when a different drug is selected
@@ -170,25 +179,6 @@ class PillViewModel @Inject constructor(
         _selectedPoppedPills.value = newSelectedPoppedPills
     }
 
-    private fun onAppModeChange(mode: PillTimerMode) {
-        _appMode.value = mode
-    }
-
-    fun onPillLongPress() {
-        Log.d(TAG, "onPillLongPress")
-
-        // change the mode of the app
-        onAppModeChange(
-            when (appMode.value) {
-                PillTimerMode.POP_PILLS -> PillTimerMode.DOSAGE_SELECT
-                PillTimerMode.DOSAGE_SELECT -> PillTimerMode.POP_PILLS
-            }
-        )
-    }
-
-    private val _appMode = MutableStateFlow(PillTimerMode.POP_PILLS)
-    val appMode: StateFlow<PillTimerMode> = _appMode.asStateFlow()
-
     // the drug the user is about to pop
     private val _selectedDrug = MutableStateFlow(Drug.ACETAMINOPHEN)
     val selectedDrug: StateFlow<Drug> = _selectedDrug.asStateFlow()
@@ -207,7 +197,8 @@ class PillViewModel @Inject constructor(
         _selectedPoppedPillsPreDropOff.asStateFlow()
 
     val _selectedDrugTakenPreDropOffMg = MutableStateFlow(0)
-    val selectedDrugTakenPreDropOffMg: StateFlow<Int> = _selectedDrugTakenPreDropOffMg.asStateFlow()
+    val selectedDrugTakenPreDropOffMg: StateFlow<Int> =
+        _selectedDrugTakenPreDropOffMg.asStateFlow()
 
 
     // returns the total amount of this drug (in mg) consumed
@@ -215,53 +206,39 @@ class PillViewModel @Inject constructor(
         return pillRepository.getAmountConsumedMg(drug)
     }
 
-    private val _promptCustomDosage = MutableStateFlow(false)
-    val promptCustomDosage = _promptCustomDosage.asStateFlow()
+    private val _showDrugMaximumDialog = MutableStateFlow(false)
+    val showDrugMaximumDialog = _showDrugMaximumDialog.asStateFlow()
 
     fun onPromptCustomDosage() {
-        _promptCustomDosage.value = true;
+        Log.d(TAG, "onPromptCustomDosage [setting _showDrugMaximumDialog to true]")
+        _showDrugMaximumDialog.value = true;
     }
 
     fun onDismissCustomDosage() {
-        _promptCustomDosage.value = false;
+        Log.d(TAG, "onDismissCustomDosage [setting _showDrugMaximumDialog to false]")
+        _showDrugMaximumDialog.value = false;
     }
 
-    fun onEnterCustomDosage(dosageMg: Int?, scaffoldState: ScaffoldState) {
-        if(dosageMg == null) {
-            viewModelScope.launch {
-            scaffoldState.snackbarHostState.showSnackbar("Please enter a dosage", duration = SnackbarDuration.Short)
-            }
-            return
+    private val _isPoppingEnabled = MutableStateFlow(false)
+    val isPoppingEnabled: StateFlow<Boolean> = _isPoppingEnabled.asStateFlow()
+
+    // sets the value to true when the user can take another of the selected drug
+    private fun updateIsEnabled() {
+        viewModelScope.launch {
+            Log.d(TAG, "updateIsEnabled")
+            val newVal = pillRepository.poppingEnabled(selectedDrug.value)
+            _isPoppingEnabled.value = newVal
         }
-
-        // save the custom dosage for the selected drug
-        // TODO: should persist drug data in a new DrugRepository
-        //      the type should be a wrapper around Drug (delegate to it)
-//        pillRepository.
     }
-
 
     init {
-        /**
-         * Only to be updated by changes to the repository!
-         * Note: First real-world application of textbook reading was nesting 'onAllPillsChanged' here!
-         */
-        fun onAllPoppedPillsChange(allNewPills: List<Pill>) {
-            Log.d(TAG, "onAllPoppedPillsChange: allNewPills: $allNewPills")
-            _allPoppedPills.value = allNewPills
-            // filter based on selected drug
-//            // TODO: Move this logic elsewhere s.t. popping a pill AND changing selected drug will update this filter
-//            val newSelectedPoppedPills =
-//                allPoppedPills.value.filter { pill -> pill.drug == selectedDrug.value }
-//            _selectedDrugTakenMg.value = newSelectedPoppedPills.sumOf { it.dosageMg }
-//            _selectedPoppedPills.value = newSelectedPoppedPills
-            updateSelectedDrugTakenMg()
-        }
-
         Log.d(TAG, "init!")
         viewModelScope.launch {
             pillRepository.loadAll().collect { pills ->
-                onAllPoppedPillsChange(pills)
+                // code that is ran whenever the pills change (popped, deleted, dropped-off)
+                _allPoppedPills.value = pills
+                updateSelectedDrugTakenMg()
+                updateIsEnabled()
             }
         }
     }

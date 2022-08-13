@@ -88,7 +88,13 @@ About this project:
         Looks whacky small display sizes
 
     Finish PillRepository.onEnterCustomDosage()
-        Rename Drug [enum] to be DrugDefaults
-        Create a new MutableDrug data class that is read from DrugRepositry [new]
-            The MutableDrugs are to be referenced instead of DrugDefaults
+        One implementation:
+            Rename Drug [enum] to be DrugDefaults (?)
+            Create a new MutableDrug data class that is read from DrugRepositry [new]
+                The MutableDrugs are to be referenced instead of DrugDefaults
+            Changing duration of drug should alter active PillDropOffWorker
+
+        Another implementation:
+            Convert Drug class to Data class
+                Convert the primary key in DB entries to a new field, "drugGeneric" or something similar [allow for name of drug to be name brand, etc]
     

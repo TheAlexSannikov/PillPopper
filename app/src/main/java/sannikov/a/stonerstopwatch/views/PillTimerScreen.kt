@@ -1,16 +1,13 @@
 package sannikov.a.stonerstopwatch.pilltimer
 
 import android.graphics.BitmapFactory
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -19,16 +16,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import sannikov.a.stonerstopwatch.R
 import sannikov.a.stonerstopwatch.data.Drug
 import sannikov.a.stonerstopwatch.data.Pill
-import sannikov.a.stonerstopwatch.data.PillTimerMode
 import sannikov.a.stonerstopwatch.viewmodels.PillViewModel
 import sannikov.a.stonerstopwatch.views.happyEarth
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Text
-import androidx.compose.ui.text.input.KeyboardType
-
-val PILL_SIZE = 120.dp
-val ARROW_SIZE = 90.dp
-val ICON_SIZE = 24.dp
 
 @Composable
 fun PillTimerScreen(
@@ -42,214 +33,25 @@ fun PillTimerScreen(
     val selectedDrugTakenMg by pillViewModel.selectedDrugTakenMg.collectAsState()
     val selectedDrugTakenPreDropOffMg by pillViewModel.selectedDrugTakenPreDropOffMg.collectAsState()
     val selectedPoppedPillsPreDropOff by pillViewModel.selectedPoppedPillsPreDropOff.collectAsState()
-    val appMode by pillViewModel.appMode.collectAsState()
+    val isPoppingEnabled by pillViewModel.isPoppingEnabled.collectAsState()
+    val showDrugMaximumDialog by pillViewModel.showDrugMaximumDialog.collectAsState()
 
     happyEarth =
         BitmapFactory.decodeResource(LocalContext.current.resources, R.drawable.happy_earth_no_bg)
 
-    PillTimerContent(
-        pillViewModel = pillViewModel,
-        allPoppedPills = allPoppedPills,
-        selectedPoppedPills = selectedPoppedPills,
-        selectedDrugTakenMg = selectedDrugTakenMg,
-        selectedPoppedPillsPreDropOff = selectedPoppedPillsPreDropOff,
-        selectedDrugTakenPreDropOffMg = selectedDrugTakenPreDropOffMg,
-        selectedDrug = selectedDrug,
-        appMode = appMode,
-        modifier = Modifier,
-        scaffoldState = scaffoldState,
+    PillTimerPopPillMode(
+        pillViewModel,
+        allPoppedPills,
+        selectedDrug,
+        isPoppingEnabled,
+        showDrugMaximumDialog,
+        Modifier,
+        scaffoldState,
+        selectedPoppedPills,
+        selectedDrugTakenMg,
+        selectedPoppedPillsPreDropOff,
+        selectedDrugTakenPreDropOffMg
     )
-}
-
-@Composable
-fun PillTimerContent(
-    pillViewModel: PillViewModel,
-    allPoppedPills: List<Pill>,
-    selectedPoppedPills: List<Pill>,
-    selectedDrugTakenMg: Int,
-    selectedPoppedPillsPreDropOff: List<Pill>,
-    selectedDrugTakenPreDropOffMg: Int,
-    selectedDrug: Drug,
-    appMode: PillTimerMode,
-    modifier: Modifier,
-    scaffoldState: ScaffoldState
-) {
-    when (appMode) {
-        PillTimerMode.POP_PILLS -> PillTimerPopPillMode(
-            pillViewModel,
-            allPoppedPills,
-            selectedDrug,
-            modifier,
-            scaffoldState,
-            selectedPoppedPills,
-            selectedDrugTakenMg,
-            selectedPoppedPillsPreDropOff,
-            selectedDrugTakenPreDropOffMg
-        )
-        PillTimerMode.DOSAGE_SELECT -> PillTimerDosageSelectMode(
-            pillViewModel,
-            selectedDrug,
-            modifier,
-            scaffoldState
-        )
-    }
-}
-
-// TODO: merge this with PillTimerPopPills(), include animations
-@Composable
-fun PillTimerDosageSelectMode(
-    pillViewModel: PillViewModel,
-    selectedDrug: Drug,
-    modifier: Modifier = Modifier,
-    scaffoldState: ScaffoldState,
-) {
-    Surface(
-        modifier = modifier
-            .fillMaxSize(),
-        color = MaterialTheme.colors.background,
-    ) {
-
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-
-            Row(
-                horizontalArrangement = Arrangement.SpaceAround,
-                modifier = modifier
-                    .weight(3f, fill = true)
-                    .fillMaxWidth()
-            ) {
-                Text(
-                    style = MaterialTheme.typography.h6,
-                    text = "Select dosage",
-                    color = MaterialTheme.colors.onBackground,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.align(Alignment.Bottom)
-                )
-            }
-
-            Row(
-                horizontalArrangement = Arrangement.SpaceAround,
-                modifier = modifier
-                    .weight(1f, fill = true)
-                    .fillMaxWidth()
-            ) {
-                Button(
-                    onClick = {
-                        pillViewModel.onDrugSelectLeft()
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color.Transparent
-                    ),
-                    modifier = modifier
-                        .weight(0.2f)
-                        .align(Alignment.Top),
-                    contentPadding = PaddingValues(0.dp),
-                    elevation = null,
-                ) {
-                    Text("400mg")
-                }
-            }
-
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = modifier
-                    .weight(3f, fill = true)
-                    .fillMaxWidth()
-            ) {
-
-                Button(
-                    onClick = {
-                        pillViewModel.onDrugSelectLeft()
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color.Transparent
-                    ),
-                    modifier = modifier.weight(0.2f),
-                    contentPadding = PaddingValues(0.dp),
-                    elevation = null,
-                ) {
-                    Text("200mg")
-                }
-
-                // pop button
-                Surface(
-                    modifier = modifier
-                        .weight(0.4f)
-                        .aspectRatio(1f)
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onTap = {
-                                    pillViewModel.onPopPill(scaffoldState = scaffoldState)
-                                },
-                                onLongPress = {
-                                    pillViewModel.onPillLongPress()
-                                },
-                            )
-                        },
-                    shape = CircleShape,
-                    color = MaterialTheme.colors.primary,
-                ) {
-                    Icon(
-                        painter = painterResource(id = selectedDrug.imageId),
-                        contentDescription = "Pop ${selectedDrug.drugName}",
-                        tint = Color.Unspecified,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(10.dp)
-                    )
-                }
-
-                Button(
-                    onClick = {
-                        pillViewModel.onDrugSelectRight()
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color.Transparent
-                    ),
-                    modifier = modifier
-                        .weight(0.2f)
-                        .padding(0.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    elevation = null,
-                ) {
-                    Text("600mg")
-                }
-            }
-
-            // enter custom dosage
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                modifier = modifier
-                    .weight(1f, fill = true)
-                    .fillMaxWidth()
-            ) {
-
-                Button(
-                    onClick = { pillViewModel.onPromptCustomDosage() },
-                    modifier = Modifier
-                        .padding(horizontal = 15.dp)
-                        .padding(0.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = MaterialTheme.colors.error
-                    ),
-                    elevation = null,
-                ) {
-                    promptDosageInput(scaffoldState = scaffoldState)
-                    Text("Custom")
-                }
-            }
-            Spacer(
-                modifier = modifier
-                    .weight(1.5f, fill = true)
-                    .fillMaxWidth()
-            )
-        }
-    }
 }
 
 @Composable
@@ -257,6 +59,8 @@ fun PillTimerPopPillMode(
     pillViewModel: PillViewModel,
     allPoppedPills: List<Pill>,
     selectedDrug: Drug,
+    isPoppingEnabled: Boolean,
+    showDrugMaximumDialog: Boolean,
     modifier: Modifier = Modifier,
     scaffoldState: ScaffoldState,
     selectedPoppedPills: List<Pill>,
@@ -338,23 +142,19 @@ fun PillTimerPopPillMode(
                 }
 
                 // pop button
-                Surface(
+                Button(
+                    onClick = {
+                        pillViewModel.onPopPill(scaffoldState = scaffoldState)
+                    },
                     modifier = modifier
                         .weight(0.4f)
-                        .aspectRatio(1f)
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onTap = {
-                                    pillViewModel.onPopPill(scaffoldState = scaffoldState)
-                                },
-                                onLongPress = {
-                                    pillViewModel.onPillLongPress()
-                                },
-                            )
-                        },
+                        .aspectRatio(1f),
                     shape = CircleShape,
-                    color = MaterialTheme.colors.primary,
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = if (isPoppingEnabled) MaterialTheme.colors.primary else Color.LightGray,
+                    ),
                 ) {
+                    promptDrugMaximumDialog(showDrugMaximumDialog, scaffoldState = scaffoldState)
                     Icon(
                         painter = painterResource(id = selectedDrug.imageId),
                         contentDescription = "Pop ${selectedDrug.drugName}",
@@ -407,14 +207,14 @@ fun PillTimerPopPillMode(
                         .padding(horizontal = 15.dp)
                         .padding(0.dp),
                     colors = ButtonDefaults.buttonColors(
-                        backgroundColor = MaterialTheme.colors.error
+                        backgroundColor = MaterialTheme.colors.error,
                     ),
                     elevation = null,
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_baseline_undo_24),
                         contentDescription = "Undo",
-                        tint = Color.Unspecified,
+                        tint = Color.White,
                     )
                 }
 
@@ -434,7 +234,7 @@ fun PillTimerPopPillMode(
                     Icon(
                         painter = painterResource(id = R.drawable.ic_baseline_delete_24),
                         contentDescription = "Delete all pills",
-                        tint = Color.Unspecified
+                        tint = Color.White,
                     )
                 }
             }
@@ -448,13 +248,12 @@ fun PillTimerPopPillMode(
 }
 
 @Composable
-fun promptDosageInput(
+fun promptDrugMaximumDialog(
+    openDialog: Boolean,
     pillViewModel: PillViewModel = hiltViewModel(),
     scaffoldState: ScaffoldState
 ) {
-    val openDialog by pillViewModel.promptCustomDosage.collectAsState()
-
-    var input by remember { mutableStateOf("0") }
+//    var input by remember { mutableStateOf("0") }
 
     if (openDialog) {
         AlertDialog(
@@ -462,18 +261,7 @@ fun promptDosageInput(
                 pillViewModel.onDismissCustomDosage()
             },
             title = {
-                Text(text = "Enter dosage")
-            },
-            text = {
-                Column() {
-                    TextField(
-                        value = input,
-                        placeholder = { Text("Custom") },
-                        onValueChange = { input = it },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                    )
-                    Text("this will be saved for future reference")
-                }
+                Text(text = "Whoa mamma! You've reached your limit for the minute")
             },
             buttons = {
                 Row(
@@ -491,18 +279,16 @@ fun promptDosageInput(
                         ),
                         onClick = { pillViewModel.onDismissCustomDosage() }
                     ) {
-                        Text("Cancel")
+                        Text("Dismiss")
                     }
                     Button(
                         modifier = Modifier.wrapContentWidth(),
                         onClick = {
-                            pillViewModel.onEnterCustomDosage(
-                                input.toIntOrNull(),
-                                scaffoldState = scaffoldState
-                            )
+                            pillViewModel.onPopPill(scaffoldState, overrideDrugMaximum = true)
+                            pillViewModel.onDismissCustomDosage()
                         }
                     ) {
-                        Text("Set dosage")
+                        Text("Take anyway!")
                     }
                 }
             }

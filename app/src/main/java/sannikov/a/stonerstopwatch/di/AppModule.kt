@@ -39,7 +39,10 @@ internal object AppModule {
 
     @Singleton
     @Provides
-    fun providePillPopperViewModel(@ApplicationContext appContext: Context, pillRepository: PillRepository): PillViewModel =
+    fun providePillPopperViewModel(
+        @ApplicationContext appContext: Context,
+        pillRepository: PillRepository
+    ): PillViewModel =
         PillViewModel(pillRepository, appContext)
 
     @Singleton
@@ -51,7 +54,9 @@ internal object AppModule {
     @Singleton
     @Provides
     fun provideAppDatabase(@ApplicationContext appContext: Context): AppDatabase =
-        Room.databaseBuilder(appContext, AppDatabase::class.java, "stoner-stopwatch-db").build()
+        Room.databaseBuilder(appContext, AppDatabase::class.java, "stoner-stopwatch-db")
+            .fallbackToDestructiveMigration()
+            .build()
 
     /*
      dataStoreManager = DataStoreManager.getInstance(this@MainActivity)
