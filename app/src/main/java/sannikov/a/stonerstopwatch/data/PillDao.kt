@@ -8,8 +8,8 @@ interface PillDao {
     @Query("SELECT * from pill")
     fun loadAll(): Flow<List<Pill>>
 
-    @Query("SELECT * FROM pill WHERE drug = :qDrug")
-    fun loadAllByDrug(qDrug: Drug): Flow<List<Pill>>
+    @Query("SELECT * FROM pill WHERE drugId = :drugId")
+    fun loadAllByDrugId(drugId: Int): Flow<List<Pill>>
 
     @Insert
     suspend fun popPill(pill : Pill)
@@ -23,11 +23,11 @@ interface PillDao {
     @Query("DELETE FROM pill")
     suspend fun deleteAllPills()
 
-    @Query("SELECT SUM(dosageMg) FROM Pill WHERE drug = :qDrug")
-    suspend fun getAmountConsumedMg(qDrug: Drug): Int?
+    @Query("SELECT SUM(dosageMg) FROM Pill WHERE drugId = :drugId")
+    suspend fun getAmountConsumedMg(drugId: Int): Int?
 
-    @Query("SELECT SUM(dosageMg) FROM Pill WHERE drug = :qDrug AND droppedOff = 0")
-    suspend fun getAmountConsumedPreDropOffMg(qDrug: Drug): Int?
+    @Query("SELECT SUM(dosageMg) FROM Pill WHERE drugId = :drugId AND droppedOff = 0")
+    suspend fun getAmountConsumedPreDropOffMg(drugId: Int): Int?
 
     @Query("SELECT * FROM Pill WHERE timeTakenMsEpoch = :timestamp" )
     suspend fun queryPillByTimestamp(timestamp: Long): Pill

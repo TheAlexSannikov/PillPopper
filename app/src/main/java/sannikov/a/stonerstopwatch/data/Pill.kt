@@ -8,7 +8,7 @@ import androidx.room.*
  */
 @Entity(tableName = "Pill")
 data class Pill(
-    @NonNull @ColumnInfo(name = "drug") val drug: Drug,
+    @NonNull @ColumnInfo(name = "drugId") val drugId: Int,
     @NonNull @ColumnInfo(name = "dosageMg") val dosageMg: Int,
     @NonNull @ColumnInfo(name = "droppedOff") var droppedOff: Boolean = false,
     @NonNull @PrimaryKey val timeTakenMsEpoch: Long

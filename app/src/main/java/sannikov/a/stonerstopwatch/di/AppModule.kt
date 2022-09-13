@@ -9,10 +9,7 @@ import dagger.Provides
 import android.content.Context
 import androidx.room.Room
 import dagger.hilt.android.qualifiers.ApplicationContext
-import sannikov.a.stonerstopwatch.data.AppDatabase
-import sannikov.a.stonerstopwatch.data.DataStoreManager
-import sannikov.a.stonerstopwatch.data.PillDao
-import sannikov.a.stonerstopwatch.data.PillRepository
+import sannikov.a.stonerstopwatch.data.*
 import sannikov.a.stonerstopwatch.viewmodels.PillViewModel
 import sannikov.a.stonerstopwatch.viewmodels.StopwatchViewModel
 
@@ -41,14 +38,21 @@ internal object AppModule {
     @Provides
     fun providePillPopperViewModel(
         @ApplicationContext appContext: Context,
-        pillRepository: PillRepository
+        pillRepository: PillRepository,
+        drugRepository: DrugRepository
     ): PillViewModel =
-        PillViewModel(pillRepository, appContext)
+        PillViewModel(pillRepository, drugRepository, appContext)
 
     @Singleton
     @Provides
     fun providePillDao(appDatabase: AppDatabase): PillDao {
         return appDatabase.pillDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideDrugDao(appDatabase: AppDatabase): DrugDao {
+        return appDatabase.drugDao()
     }
 
     @Singleton

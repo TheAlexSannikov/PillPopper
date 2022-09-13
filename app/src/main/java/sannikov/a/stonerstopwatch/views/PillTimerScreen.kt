@@ -20,6 +20,7 @@ import sannikov.a.stonerstopwatch.viewmodels.PillViewModel
 import sannikov.a.stonerstopwatch.views.happyEarth
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Text
+import sannikov.a.stonerstopwatch.data.PillPopperDialogs
 
 @Composable
 fun PillTimerScreen(
@@ -34,7 +35,7 @@ fun PillTimerScreen(
     val selectedDrugTakenPreDropOffMg by pillViewModel.selectedDrugTakenPreDropOffMg.collectAsState()
     val selectedPoppedPillsPreDropOff by pillViewModel.selectedPoppedPillsPreDropOff.collectAsState()
     val isPoppingEnabled by pillViewModel.isPoppingEnabled.collectAsState()
-    val showDrugMaximumDialog by pillViewModel.showDrugMaximumDialog.collectAsState()
+    val activeDialog by pillViewModel.activeDialog.collectAsState()
 
     happyEarth =
         BitmapFactory.decodeResource(LocalContext.current.resources, R.drawable.happy_earth_no_bg)
@@ -44,7 +45,7 @@ fun PillTimerScreen(
         allPoppedPills,
         selectedDrug,
         isPoppingEnabled,
-        showDrugMaximumDialog,
+        activeDialog,
         Modifier,
         scaffoldState,
         selectedPoppedPills,
@@ -60,7 +61,7 @@ fun PillTimerPopPillMode(
     allPoppedPills: List<Pill>,
     selectedDrug: Drug,
     isPoppingEnabled: Boolean,
-    showDrugMaximumDialog: Boolean,
+    activeDialogs: PillPopperDialogs,
     modifier: Modifier = Modifier,
     scaffoldState: ScaffoldState,
     selectedPoppedPills: List<Pill>,
@@ -87,13 +88,23 @@ fun PillTimerPopPillMode(
                     .weight(3f, fill = true)
                     .fillMaxWidth()
             ) {
-                Text(
-                    style = MaterialTheme.typography.h6,
-                    text = "${selectedDrugTakenPreDropOffMg}mg of ${selectedDrug.drugName} popped!",
-                    color = MaterialTheme.colors.onBackground,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.align(Alignment.Bottom)
-                )
+                if (selectedDrug.isAddNewDrug) {
+                    Text(
+                        style = MaterialTheme.typography.h6,
+                        text = "Add new drug",
+                        color = MaterialTheme.colors.onBackground,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.align(Alignment.Bottom)
+                    )
+                } else {
+                    Text(
+                        style = MaterialTheme.typography.h6,
+                        text = "${selectedDrugTakenPreDropOffMg}mg of ${selectedDrug.drugName} popped!",
+                        color = MaterialTheme.colors.onBackground,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.align(Alignment.Bottom)
+                    )
+                }
             }
 
             Row(
@@ -102,15 +113,17 @@ fun PillTimerPopPillMode(
                     .weight(1f, fill = true)
                     .fillMaxWidth()
             ) {
-                Text(
-                    style = MaterialTheme.typography.body1,
-                    text = "And ${selectedDrugTakenMg}mg within 24hr",
-                    color = MaterialTheme.colors.onBackground,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .align(Alignment.Top)
-                        .padding(5.dp)
-                )
+                if (!selectedDrug.isAddNewDrug) {
+                    Text(
+                        style = MaterialTheme.typography.body1,
+                        text = "And ${selectedDrugTakenMg}mg within 24hr",
+                        color = MaterialTheme.colors.onBackground,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .align(Alignment.Top)
+                            .padding(5.dp)
+                    )
+                }
             }
 
             Row(
@@ -144,7 +157,7 @@ fun PillTimerPopPillMode(
                 // pop button
                 Button(
                     onClick = {
-                        pillViewModel.onPopPill(scaffoldState = scaffoldState)
+                        pillViewModel.onPopButtonPress(scaffoldState = scaffoldState)
                     },
                     modifier = modifier
                         .weight(0.4f)
@@ -154,10 +167,15 @@ fun PillTimerPopPillMode(
                         backgroundColor = if (isPoppingEnabled) MaterialTheme.colors.primary else Color.LightGray,
                     ),
                 ) {
-                    promptDrugMaximumDialog(showDrugMaximumDialog, scaffoldState = scaffoldState)
+                    // only shows prompt when needed
+                    PromptDialog(
+                        activeDialogs,
+                        scaffoldState = scaffoldState
+                    )
+                    // Show 'pop' button when not prompting
                     Icon(
                         painter = painterResource(id = selectedDrug.imageId),
-                        contentDescription = "Pop ${selectedDrug.drugName}",
+                        contentDescription = if (!selectedDrug.isAddNewDrug) "Click to pop ${selectedDrug.drugName}, or hold to modify this pill" else "Add new drug",
                         tint = Color.Unspecified,
                         modifier = Modifier
                             .fillMaxSize()
@@ -180,14 +198,26 @@ fun PillTimerPopPillMode(
                     contentPadding = PaddingValues(0.dp),
                     elevation = null,
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_baseline_arrow_right_24),
-                        contentDescription = "Next pill",
-                        tint = if (pillViewModel.isDrugToRight()) MaterialTheme.colors.onBackground else Color.Gray,
-                        modifier = modifier
-                            .fillMaxSize()
-                            .padding(0.dp)
-                    )
+                    if (pillViewModel.isAddNewDrugToRight()) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_baseline_add_24),
+                            contentDescription = "Next pill",
+                            tint = MaterialTheme.colors.onBackground,
+                            modifier = modifier
+                                .fillMaxSize()
+                                .padding(0.dp)
+                        )
+                    } else {
+                        val isDrugToRight = pillViewModel.isDrugToRight()
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_baseline_arrow_right_24),
+                            contentDescription = if (isDrugToRight) "Next pill" else "End of list. Cannot select next pill",
+                            tint = if (isDrugToRight) MaterialTheme.colors.onBackground else Color.Gray,
+                            modifier = modifier
+                                .fillMaxSize()
+                                .padding(0.dp)
+                        )
+                    }
                 }
             }
 
@@ -248,51 +278,59 @@ fun PillTimerPopPillMode(
 }
 
 @Composable
-fun promptDrugMaximumDialog(
-    openDialog: Boolean,
+fun PromptDialog(
+    activeDialogs: PillPopperDialogs,
     pillViewModel: PillViewModel = hiltViewModel(),
     scaffoldState: ScaffoldState
 ) {
-//    var input by remember { mutableStateOf("0") }
-
-    if (openDialog) {
-        AlertDialog(
-            onDismissRequest = {
-                pillViewModel.onDismissCustomDosage()
-            },
-            title = {
-                Text(text = "Whoa mamma! You've reached your limit for the minute")
-            },
-            buttons = {
-                Row(
-                    modifier = Modifier
-                        .padding(all = 8.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Button(
-                        modifier = Modifier
-                            .wrapContentWidth()
-                            .padding(end = 10.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            backgroundColor = MaterialTheme.colors.primaryVariant
-                        ),
-                        onClick = { pillViewModel.onDismissCustomDosage() }
-                    ) {
-                        Text("Dismiss")
-                    }
-                    Button(
-                        modifier = Modifier.wrapContentWidth(),
-                        onClick = {
-                            pillViewModel.onPopPill(scaffoldState, overrideDrugMaximum = true)
-                            pillViewModel.onDismissCustomDosage()
-                        }
-                    ) {
-                        Text("Take anyway!")
-                    }
-                }
-            }
+    return when (activeDialogs) {
+        PillPopperDialogs.SHOW_PROMPT_DRUG_MAXIMUM_DIALOG -> PromptDrugMaximumDialog(
+            scaffoldState =scaffoldState
         )
+        PillPopperDialogs.NO_DIALOG -> return
     }
 }
 
+@Composable
+fun PromptDrugMaximumDialog(
+    scaffoldState: ScaffoldState,
+    pillViewModel: PillViewModel = hiltViewModel(),
+) {
+    AlertDialog(
+        onDismissRequest = {
+            pillViewModel.onDismissDialog()
+        },
+        title = {
+            Text(text = "Whoa mamma! You've reached your limit for the minute")
+        },
+        buttons = {
+            Row(
+                modifier = Modifier
+                    .padding(all = 8.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Button(
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .padding(end = 10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = MaterialTheme.colors.primaryVariant
+                    ),
+                    onClick = { pillViewModel.onDismissDialog() }
+                ) {
+                    Text("Dismiss")
+                }
+                Button(
+                    modifier = Modifier.wrapContentWidth(),
+                    onClick = {
+                        pillViewModel.onPopPill(scaffoldState, overrideDrugMaximum = true)
+                        pillViewModel.onDismissDialog()
+                    }
+                ) {
+                    Text("Take anyway!")
+                }
+            }
+        }
+    )
+}

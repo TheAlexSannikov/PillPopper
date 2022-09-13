@@ -9,14 +9,14 @@ import javax.inject.Singleton
 class PillRepository @Inject constructor(
     private val pillDao: PillDao
 ) {
-    private val TAG = "PillRepoitory"
+    private val TAG = "PillRepository"
 
-    suspend fun loadAll(): Flow<List<Pill>> {
+    fun loadAll(): Flow<List<Pill>> {
         return pillDao.loadAll()
     }
 
-    suspend fun loadAllByDrug(drug: Drug): Flow<List<Pill>> {
-        return pillDao.loadAllByDrug(qDrug = drug)
+    fun loadAllByDrugId(drug: Drug): Flow<List<Pill>> {
+        return pillDao.loadAllByDrugId(drugId = drug.drugId)
     }
 
     /**
@@ -42,20 +42,18 @@ class PillRepository @Inject constructor(
      * returns results from [getAmountConsumedMg, getAmountConsumedPreDropOffMg]
      */
     suspend fun getAmountsConsumedMg(drug: Drug): Array<Int> {
-        val getAmountConsumedMg = pillDao.getAmountConsumedMg(qDrug = drug) ?: 0
-        val getAmountConsumedPreDropOffMg = pillDao.getAmountConsumedPreDropOffMg(qDrug = drug) ?: 0
+        val getAmountConsumedMg = pillDao.getAmountConsumedMg(drugId = drug.drugId) ?: 0
+        val getAmountConsumedPreDropOffMg = pillDao.getAmountConsumedPreDropOffMg(drugId = drug.drugId) ?: 0
 
         return arrayOf(getAmountConsumedMg,getAmountConsumedPreDropOffMg)
     }
 
     suspend fun getAmountConsumedMg(drug: Drug): Int {
-        val daoRet = pillDao.getAmountConsumedMg(qDrug = drug)
-        return if(daoRet != null) daoRet else 0
+        return pillDao.getAmountConsumedMg(drugId = drug.drugId) ?: 0
     }
 
     suspend fun getAmountConsumedPreDropOffMg(drug: Drug): Int {
-        val daoRet = pillDao.getAmountConsumedPreDropOffMg(qDrug = drug)
-        return if(daoRet != null) daoRet else 0
+        return pillDao.getAmountConsumedPreDropOffMg(drugId = drug.drugId) ?: 0
     }
 
     suspend fun queryPillByTimestamp(timestamp: Long): Pill {

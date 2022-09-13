@@ -88,13 +88,16 @@ About this project:
         Looks whacky small display sizes
 
     Finish PillRepository.onEnterCustomDosage()
-        One implementation:
-            Rename Drug [enum] to be DrugDefaults (?)
-            Create a new MutableDrug data class that is read from DrugRepositry [new]
-                The MutableDrugs are to be referenced instead of DrugDefaults
-            Changing duration of drug should alter active PillDropOffWorker
 
-        Another implementation:
+        In progress:
             Convert Drug class to Data class
-                Convert the primary key in DB entries to a new field, "drugGeneric" or something similar [allow for name of drug to be name brand, etc]
-    
+                Convert the primary key in DB entries to a new field, drugId
+            DrugDao loads all Drugs as a flow, use this to sort the pills
+
+        Idea for add pill:
+            Go to right of available pills, click + icon -> Figma design = "Pill Popper add pill from preset"
+                Hints at ability to customize pill if they buy premium
+                If they exhause the limited number of preset pills, they have an option to create a new pill (but paywall)
+        
+        Idea for edit pill:
+            Long press on pill, brings up similar dialog as adding a new pill
