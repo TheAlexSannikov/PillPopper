@@ -1,4 +1,4 @@
-package sannikov.a.stonerstopwatch
+package sannikov.a.stonerstopwatch.navigation
 
 // sealed class: a class that only allows classes within it to inherited from it, similar to enum
 sealed class Screen(val route: String) {

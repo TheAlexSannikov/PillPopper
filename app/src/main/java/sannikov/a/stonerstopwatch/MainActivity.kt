@@ -17,6 +17,7 @@ import sannikov.a.stonerstopwatch.data.AppDatabase
 import sannikov.a.stonerstopwatch.data.DataStoreManager
 import sannikov.a.stonerstopwatch.viewmodels.StopwatchViewModel
 import sannikov.a.stonerstopwatch.data.StopwatchStates
+import sannikov.a.stonerstopwatch.navigation.MainScreenBottomNav
 
 import javax.inject.Inject
 
@@ -41,9 +42,7 @@ class MainActivity : AppCompatActivity() {
         startClock()
 
         setContent {
-            MaterialTheme() {
-                MainScreenBottomNav()
-            }
+            MainScreenBottomNav()
         }
     }
 

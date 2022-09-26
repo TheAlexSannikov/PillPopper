@@ -1,4 +1,4 @@
-package sannikov.a.stonerstopwatch
+package sannikov.a.stonerstopwatch.navigation
 // https://youtu.be/gg-KBGH9T8s
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home

@@ -1,11 +1,13 @@
-package sannikov.a.stonerstopwatch
+package sannikov.a.stonerstopwatch.navigation
 // https://youtu.be/gg-KBGH9T8s
 import androidx.compose.material.ScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import sannikov.a.stonerstopwatch.navigation.BottomBarScreen
 import sannikov.a.stonerstopwatch.pilltimer.PillTimerScreen
+import sannikov.a.stonerstopwatch.views.SettingsScreen
 import sannikov.a.stonerstopwatch.views.StopwatchScreen
 
 @Composable
