@@ -8,10 +8,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
-fun SettingsScreen(name: String?) {
+fun SettingsScreen(name: String?, modifier: Modifier) {
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
     ) {
         Text(text = "Settings, $name?")
     }

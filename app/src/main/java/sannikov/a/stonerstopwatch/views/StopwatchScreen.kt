@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -12,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -38,7 +40,7 @@ lateinit var happyEarth: Bitmap
 
 @Preview
 @Composable
-fun StopwatchScreenStub(stopwatchViewModel : StopwatchViewModel = hiltViewModel()) {
+fun StopwatchScreenStub(stopwatchViewModel : StopwatchViewModel = hiltViewModel(), modifier: Modifier = Modifier) {
 //    @Named("stateViewModel")
 //    lateinit var stateViewModel: StateViewModel
 
@@ -50,12 +52,12 @@ fun StopwatchScreenStub(stopwatchViewModel : StopwatchViewModel = hiltViewModel(
     StopwatchContent(
         elapsedTimeMs = elapsedTimeMs,
         stopwatchState = stopwatchState,
-        modifier = Modifier.fillMaxSize()
+        modifier = modifier,
     )
 }
 
 @Composable
-fun StopwatchScreen(stopwatchViewModel : StopwatchViewModel = hiltViewModel()) {
+fun StopwatchScreen(stopwatchViewModel : StopwatchViewModel = hiltViewModel(), modifier: Modifier = Modifier) {
 
     val stopwatchState by stopwatchViewModel.stopwatchState.collectAsState()
     happyEarth =
@@ -65,7 +67,7 @@ fun StopwatchScreen(stopwatchViewModel : StopwatchViewModel = hiltViewModel()) {
     StopwatchContent(
         elapsedTimeMs = elapsedTimeMs,
         stopwatchState = stopwatchState,
-        modifier = Modifier.aspectRatio(1F),
+        modifier = modifier,
     )
 }
 
@@ -80,10 +82,9 @@ fun StopwatchContent(
 
     // background of app
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize(),
         color = MaterialTheme.colors.background,
-
         ) {
         Column(
             verticalArrangement = Arrangement.Center,
@@ -94,7 +95,7 @@ fun StopwatchContent(
                 .fillMaxHeight(),
         ) {
             Box(
-                modifier = modifier
+                modifier = Modifier
 //                    .onSizeChanged {
 //                        size = it
 //                    }
@@ -102,6 +103,7 @@ fun StopwatchContent(
                     .align(Alignment.CenterHorizontally)
                     .padding(1.dp)
                     .wrapContentSize()
+                    .weight(2f)
             ) {
                 DrawProgressionArc(elapsedTimeMs = elapsedTimeMs, periodMs = STOPWATCH_PERIOD_MS)
             }
@@ -113,14 +115,22 @@ fun StopwatchContent(
                 color = MaterialTheme.colors.onBackground,
             )
 
+            Spacer(
+                modifier = Modifier
+                    .weight(0.2f, fill = true)
+                    .fillMaxWidth()
+            )
+
             Row(
                 horizontalArrangement = Arrangement.SpaceAround,
-                modifier = modifier
+                modifier = Modifier
                     .wrapContentHeight()
+                    .weight(0.2f)
             ) {
 
                 // start/stop button
                 Button(
+                    modifier = Modifier.padding(horizontal = 15.dp),
                     onClick = {
                         stateViewModel.onPressStartStop()
                     },
@@ -146,6 +156,7 @@ fun StopwatchContent(
 
                 // reset button
                 Button(
+                    modifier = Modifier.padding(horizontal = 15.dp),
                     onClick = {
                         stateViewModel.onPressReset()
                     },
@@ -158,6 +169,12 @@ fun StopwatchContent(
                     Text(text = "Reset", color = MaterialTheme.colors.onError,)
                 }
             }
+
+            Spacer(
+                modifier = Modifier
+                    .weight(0.2f, fill = true)
+                    .fillMaxWidth()
+            )
         }
     }
 }
@@ -218,5 +235,4 @@ fun DrawProgressionArc(elapsedTimeMs: Long, periodMs: Long) {
             cap = StrokeCap.Round,
         )
     }
-
 }

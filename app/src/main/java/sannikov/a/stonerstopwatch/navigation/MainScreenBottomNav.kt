@@ -1,24 +1,24 @@
 package sannikov.a.stonerstopwatch.navigation
 // https://youtu.be/gg-KBGH9T8s
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import sannikov.a.stonerstopwatch.views.StonerStopwatchTheme
+import sannikov.a.stonerstopwatch.ui.theme.StonerStopwatchTheme
+
 
 @Composable
 fun MainScreenBottomNav() {
     StonerStopwatchTheme {
-
-
         val navController = rememberNavController()
         val scaffoldState = rememberScaffoldState()
 
@@ -29,18 +29,13 @@ fun MainScreenBottomNav() {
             bottomBar = { BottomBar(navController = navController) },
             scaffoldState = scaffoldState,
         ) { paddingValues ->
-            /*
-             * TODO: handle paddingValues s.t. the views are not clipped off!
-             *  https://stackoverflow.com/a/72085218/17526213
-             */
             BottomNavGraph(
                 navController = navController,
                 scaffoldState = scaffoldState,
-//                modifier = Modifier.padding(paddingValues)
+                modifier = Modifier.padding(paddingValues)
             )
         }
     }
-
 }
 
 @Composable

@@ -24,6 +24,7 @@ import sannikov.a.stonerstopwatch.data.PillPopperDialogs
 
 @Composable
 fun PillTimerScreen(
+    modifier: Modifier = Modifier,
     pillViewModel: PillViewModel = hiltViewModel(),
     scaffoldState: ScaffoldState
 ) {
@@ -46,7 +47,7 @@ fun PillTimerScreen(
         selectedDrug,
         isPoppingEnabled,
         activeDialog,
-        Modifier,
+        modifier,
         scaffoldState,
         selectedPoppedPills,
         selectedDrugTakenMg,
@@ -84,7 +85,7 @@ fun PillTimerPopPillMode(
 
             Row(
                 horizontalArrangement = Arrangement.SpaceAround,
-                modifier = modifier
+                modifier = Modifier
                     .weight(3f, fill = true)
                     .fillMaxWidth()
             ) {
@@ -109,7 +110,7 @@ fun PillTimerPopPillMode(
 
             Row(
                 horizontalArrangement = Arrangement.SpaceAround,
-                modifier = modifier
+                modifier = Modifier
                     .weight(1f, fill = true)
                     .fillMaxWidth()
             ) {
@@ -129,7 +130,7 @@ fun PillTimerPopPillMode(
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = modifier
+                modifier = Modifier
                     .weight(3f, fill = true)
                     .fillMaxWidth()
             ) {
@@ -142,7 +143,7 @@ fun PillTimerPopPillMode(
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color.Transparent
                     ),
-                    modifier = modifier.weight(0.2f),
+                    modifier = Modifier.weight(0.2f),
                     contentPadding = PaddingValues(0.dp),
                     elevation = null,
                 ) {
@@ -159,7 +160,7 @@ fun PillTimerPopPillMode(
                     onClick = {
                         pillViewModel.onPopButtonPress(scaffoldState = scaffoldState)
                     },
-                    modifier = modifier
+                    modifier = Modifier
                         .weight(0.4f)
                         .aspectRatio(1f),
                     shape = CircleShape,
@@ -192,7 +193,7 @@ fun PillTimerPopPillMode(
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color.Transparent
                     ),
-                    modifier = modifier
+                    modifier = Modifier
                         .weight(0.2f)
                         .padding(0.dp),
                     contentPadding = PaddingValues(0.dp),
@@ -203,7 +204,7 @@ fun PillTimerPopPillMode(
                             painter = painterResource(id = R.drawable.ic_baseline_add_24),
                             contentDescription = "Next pill",
                             tint = MaterialTheme.colors.onBackground,
-                            modifier = modifier
+                            modifier = Modifier
                                 .fillMaxSize()
                                 .padding(0.dp)
                         )
@@ -213,17 +214,22 @@ fun PillTimerPopPillMode(
                             painter = painterResource(id = R.drawable.ic_baseline_arrow_right_24),
                             contentDescription = if (isDrugToRight) "Next pill" else "End of list. Cannot select next pill",
                             tint = if (isDrugToRight) MaterialTheme.colors.onBackground else Color.Gray,
-                            modifier = modifier
+                            modifier = Modifier
                                 .fillMaxSize()
                                 .padding(0.dp)
                         )
                     }
                 }
             }
+            Spacer(
+                modifier = Modifier
+                    .weight(0.2f, fill = true)
+                    .fillMaxWidth()
+            )
 
             Row(
                 horizontalArrangement = Arrangement.Center,
-                modifier = modifier
+                modifier = Modifier
                     .weight(1f, fill = true)
                     .fillMaxWidth()
             ) {
@@ -269,7 +275,7 @@ fun PillTimerPopPillMode(
                 }
             }
             Spacer(
-                modifier = modifier
+                modifier = Modifier
                     .weight(1.5f, fill = true)
                     .fillMaxWidth()
             )
