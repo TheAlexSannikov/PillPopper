@@ -180,7 +180,7 @@ class PillViewModel @Inject constructor(
     }
 
     // the drug the user is about to pop
-    private val _selectedDrug = MutableStateFlow(Drug.ACETAMINOPHEN)
+    private val _selectedDrug = MutableStateFlow(Drug.values()[0])
     val selectedDrug: StateFlow<Drug> = _selectedDrug.asStateFlow()
 
     private val _allPoppedPills = MutableStateFlow<List<Pill>>(emptyList())

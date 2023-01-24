@@ -13,6 +13,22 @@ enum class Drug(
     val maxDosageMgPerDay: Int,
     val imageId: Int,
 ) {
+    CREATINE(
+        drugName = "creatine",
+        dosageMg = 5,
+        periodHrs = 4,
+        maxDosageMgPerPeriod = 5,
+        maxDosageMgPerDay = 20,
+        imageId = R.drawable.ic_creatine_scoop,
+    ),
+    DAILY_DRUGS(
+        drugName = "daily pills",
+        dosageMg = 1,
+        periodHrs = 24,
+        maxDosageMgPerPeriod = 1,
+        maxDosageMgPerDay = 1,
+        imageId = R.drawable.ic_copious_drugs
+    ),
     ACETAMINOPHEN(
         drugName = "acetaminophen",
         dosageMg = 500,
@@ -36,5 +52,5 @@ enum class Drug(
         maxDosageMgPerPeriod = 50,
         maxDosageMgPerDay = 150,
         imageId = R.drawable.ic_benadryl
-    )
+    ),
 }
