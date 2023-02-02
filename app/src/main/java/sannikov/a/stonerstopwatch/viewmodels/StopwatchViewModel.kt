@@ -21,7 +21,7 @@ import javax.inject.Named
 @HiltViewModel
 class StopwatchViewModel @Inject constructor(@Named("dataStoreManager") private val dataStoreManager: DataStoreManager) :
     ViewModel() {
-    private val TAG = "StateViewModel"
+    private val TAG = "StopwatchViewModel"
 
     private val _stopwatchState = MutableStateFlow<StopwatchStates>(StopwatchStates.PAUSED)
 
