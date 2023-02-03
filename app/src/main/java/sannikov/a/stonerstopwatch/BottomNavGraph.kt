@@ -24,8 +24,5 @@ fun BottomNavGraph(
         composable(route = BottomBarScreen.PillTimer.route) {
             PillTimerScreen(scaffoldState = scaffoldState)
         }
-        composable(route = BottomBarScreen.Settings.route) {
-            SettingsScreen("placeholder")
-        }
     }
 }

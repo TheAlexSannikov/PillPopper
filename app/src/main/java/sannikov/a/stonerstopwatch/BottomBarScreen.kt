@@ -1,10 +1,9 @@
 package sannikov.a.stonerstopwatch
 // https://youtu.be/gg-KBGH9T8s
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 
 sealed class BottomBarScreen(
     val route: String,
@@ -18,8 +17,8 @@ sealed class BottomBarScreen(
     )
     object PillTimer: BottomBarScreen(
         route = "pillTimer",
-        title = "Hi Mom!",
-        icon = Icons.Default.Person
+        title = "Pill Timer",
+        icon = Icons.Default.AddCircle
     )
 
     object Settings : BottomBarScreen(
