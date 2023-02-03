@@ -12,3 +12,9 @@ Some of the technologies used by this project include:
 * Workmanager to handle pills 'dropping off' and to notify users
 
 This app was a very rewarding project and I had a blast making it!
+
+# Video Demonstration
+
+
+https://user-images.githubusercontent.com/56170988/216501127-01f03b43-ad69-4372-a6c2-11235abac5d6.mp4
+
